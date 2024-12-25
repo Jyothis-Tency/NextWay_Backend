@@ -6,6 +6,7 @@ import CompanyRepository from "../Repository/companyRepository";
 import JobPost from "../Models/jobPostModel";
 import companyAuth from "../Config/companyAuth";
 import JobApplication from "../Models/jobApplicationModel";
+import { upload } from "../Config/multerConfig";
 
 const companyRepository = new CompanyRepository(
   Company,
@@ -17,10 +18,10 @@ const companyController = new CompanyController(companyService);
 
 const companyRoutes = Router();
 
-companyRoutes.post("/register", companyController.registerSeeker);
+companyRoutes.post("/register", companyController.registerUser);
 companyRoutes.post("/verify-otp", companyController.otpVerification);
 companyRoutes.post("/resent-otp", companyController.resentOtp);
-companyRoutes.post("/login", companyController.loginSeeker);
+companyRoutes.post("/login", companyController.loginUser);
 companyRoutes.post(
   "/forgot-password-email",
   companyController.forgotPasswordEmail
@@ -65,6 +66,13 @@ companyRoutes.get(
   companyAuth,
   companyController.getJobApplicationsByCompanyId
 );
+companyRoutes.post(
+  "/upload-profile-img/:company_id",
+  companyAuth,
+  upload.single("profilePicture"),
+  companyController.updateProfileImgController
+);
+
 
 // companyRoutes.post("/createPost", companyController.newJobPosted);
 // companyRoutes.post("/createCompany", companyController.newCompanyCreated);

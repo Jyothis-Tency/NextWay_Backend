@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import HTTP_statusCode from "../Enums/httpStatusCodes";
@@ -7,11 +8,17 @@ dotenv.config();
 
 const secret_key = process.env.JWT_KEY as string;
 
-const createToken = (user_id: string, role: string): string => {
+const createToken = (
+  user_id: mongoose.Types.ObjectId | string,
+  role: string
+): string => {
   return jwt.sign({ user_id, role }, secret_key, { expiresIn: "30m" });
 };
 
-const createRefreshToken = (user_id: string, role: string): string => {
+const createRefreshToken = (
+  user_id: mongoose.Types.ObjectId | string,
+  role: string
+): string => {
   return jwt.sign({ user_id, role }, secret_key, { expiresIn: "7d" });
 };
 

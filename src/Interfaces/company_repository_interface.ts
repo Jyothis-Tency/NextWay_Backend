@@ -1,4 +1,4 @@
-import { ICompany, IJobPost,IJobApplication } from "./common_interface";
+import { ICompany, IJobPost, IJobApplication } from "./common_interface";
 
 export interface ICompanyRepository {
   findByEmail(email: string): Promise<ICompany | null>;
@@ -15,6 +15,7 @@ export interface ICompanyRepository {
   getJobPostById(_id: string): Promise<IJobPost | null>;
   deleteJobPost(_id: string): Promise<boolean>;
   jobApplicationsByCompanyId(company_id: string): Promise<IJobApplication[]>;
+  postProfileImg(user_id: string, url: string): Promise<boolean>;
 
   // getAllJobPost(userId: string): Promise<IJobPost[]>;
   // findByTitle(title: string): Promise<IJobPost | null>;

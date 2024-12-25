@@ -1,23 +1,35 @@
-import { Model, Types } from "mongoose";
+import { Model, Types, UpdateResult } from "mongoose";
 import { ICompanyRepository } from "../Interfaces/company_repository_interface";
-import { ICompany, ISeeker } from "../Interfaces/common_interface";
+import {
+  ICompany,
+  IUser,
+  ISubscriptionPlan,
+} from "../Interfaces/common_interface";
 import { IJobPost } from "../Interfaces/common_interface";
 import { IAdminRepository } from "../Interfaces/admin_repository_interface";
+import CustomError from "../Utils/customError";
+import HttpStatusCode from "../Enums/httpStatusCodes";
 
 class AdminRepository implements IAdminRepository {
   private company = Model<ICompany>;
-  private seeker = Model<ISeeker>;
+  private user = Model<IUser>;
+  private subscriptionPlan = Model<ISubscriptionPlan>;
 
-  constructor(companyModel: Model<ICompany>, seekerModel: Model<ISeeker>) {
+  constructor(
+    companyModel: Model<ICompany>,
+    userModel: Model<IUser>,
+    subscriptionPlanModel: Model<ISubscriptionPlan>
+  ) {
     this.company = companyModel;
-    this.seeker = seekerModel;
+    this.user = userModel;
+    this.subscriptionPlan = subscriptionPlanModel;
   }
 
-  getAllSeekers = async (): Promise<ISeeker[] | null> => {
+  getAllUsers = async (): Promise<IUser[] | null> => {
     try {
-      return await this.seeker.find();
+      return await this.user.find();
     } catch (error) {
-      console.log(`Error in findByEmail at seekerRepository : ${error}`);
+      console.log(`Error in findByEmail at userRepository : ${error}`);
 
       throw error;
     }
@@ -27,7 +39,7 @@ class AdminRepository implements IAdminRepository {
     try {
       return await this.company.find();
     } catch (error) {
-      console.log(`Error in findByEmail at seekerRepository : ${error}`);
+      console.log(`Error in findByEmail at userRepository : ${error}`);
 
       throw error;
     }
@@ -36,11 +48,11 @@ class AdminRepository implements IAdminRepository {
   toggleCompanyBlock = async (company_id: string): Promise<ICompany | null> => {
     try {
       // Find the company by ID
-      console.log("company_id",company_id);
-      
+      console.log("company_id", company_id);
+
       const company = await this.company.findOne({ company_id: company_id });
-      console.log("company -",company);
-      
+      console.log("company -", company);
+
       if (!company) {
         throw new Error(`Company with ID ${company_id} not found.`);
       }
@@ -58,24 +70,106 @@ class AdminRepository implements IAdminRepository {
     }
   };
 
-  toggleSeekerBlock = async (seeker_id: string): Promise<ISeeker | null> => {
+  toggleUserBlock = async (user_id: string): Promise<IUser | null> => {
     try {
       // Find the company by ID
-      const seeker = await this.seeker.findOne({ seeker_id: seeker_id });
+      const user = await this.user.findOne({ user_id: user_id });
 
-      if (!seeker) {
-        throw new Error(`Company with ID ${seeker_id} not found.`);
+      if (!user) {
+        throw new Error(`Company with ID ${user_id} not found.`);
       }
 
       // Toggle the isBlocked field
-      seeker.isBlocked = !seeker.isBlocked;
+      user.isBlocked = !user.isBlocked;
 
-      // Save the updated seeker document
-      await seeker.save();
+      // Save the updated user document
+      await user.save();
 
-      return seeker;
+      return user;
     } catch (error) {
       console.log(`Error in toggleCompanyBlock at companyRepository: ${error}`);
+      throw error;
+    }
+  };
+
+  getSubscriptionPlans = async (
+    plan_id?: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]> => {
+    try {
+      let result;
+
+      if (plan_id) {
+        result = await this.subscriptionPlan.findById(plan_id);
+        if (!result) {
+          throw new CustomError(
+            "Subscription plan not found",
+            HttpStatusCode.NOT_FOUND
+          );
+        }
+      } else {
+        result = await this.subscriptionPlan.find();
+      }
+
+      return result;
+    } catch (error) {
+      console.log(`Error in getSubscriptionPlan at adminRepository: ${error}`);
+      throw error;
+    }
+  };
+
+  createSubscriptionPlan = async (
+    planData: ISubscriptionPlan
+  ): Promise<ISubscriptionPlan> => {
+    try {
+      const { name, price } = planData;
+      const isExisting = await this.subscriptionPlan.findOne({
+        $or: [{ name }, { price }],
+      });
+      if (isExisting) {
+        let message =
+          isExisting.name === name
+            ? "A plan with this name already exists"
+            : "A plan with this price already exists";
+        throw new CustomError(message, HttpStatusCode.CONFLICT);
+      }
+      let result = null;
+      result = await this.subscriptionPlan.create(planData);
+      return result;
+    } catch (error) {
+      console.log(
+        `Error in createSubscriptionPlan at adminRepository: ${error}`
+      );
+      throw error;
+    }
+  };
+
+  editSubscriptionPlan = async (
+    planData: ISubscriptionPlan
+  ): Promise<UpdateResult> => {
+    try {
+      if (!planData) {
+        throw new CustomError(
+          "Plan Details are missing",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      let result = null;
+      
+      result = await this.subscriptionPlan.updateOne(
+        { _id: planData._id },
+        { $set: planData }
+      );
+      console.log(result);
+      
+      if (!result) {
+        throw new CustomError(
+          "Error in edit new plan",
+          HttpStatusCode.NOT_MODIFIED
+        );
+      }
+      return result;
+    } catch (error) {
+      console.log(`Error in editSubscriptionPlan at adminRepository: ${error}`);
       throw error;
     }
   };

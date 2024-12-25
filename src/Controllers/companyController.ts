@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { IJobPost, ICompany } from "../Interfaces/common_interface";
 import { ICompanyServices } from "../Interfaces/company_service_interface";
 import HttpStatusCode from "../Enums/httpStatusCodes";
@@ -9,79 +9,40 @@ class CompanyController {
     this.companyService = companyService;
   }
 
-  registerSeeker = async (req: Request, res: Response) => {
+  registerUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const companyData: ICompany = req.body;
       await this.companyService.registerCompany(companyData);
       res.status(HttpStatusCode.OK).send("OTP send to mail successfully");
-    } catch (error: any) {
-      console.log(`Error in userRegister at userController : ${error}`);
-      if (error.message === "email already exist") {
-        res
-          .status(HttpStatusCode.CONFLICT)
-          .json({ message: "Email already exist" });
-      } else if (error.message === "email not send") {
-        res
-          .status(HttpStatusCode.SERVICE_UNAVAILABLE)
-          .json({ message: "Email not send" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  otpVerification = async (req: Request, res: Response) => {
+  otpVerification = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const receivedOTP: string = req.body.receivedOTP;
-      const email: string = req.body.email;
-      console.log(receivedOTP);
+      const { receivedOTP, email } = req.body;
       await this.companyService.otpVerification(email, receivedOTP);
       res.status(HttpStatusCode.OK).json({ message: "verified" });
-    } catch (error: any) {
-      console.log(`Error in otpVerification at userController : ${error}`);
-      if (error.message === "incorrect OTP") {
-        res
-          .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: "incorrect OTP" });
-      } else if (error.message === "OTP expired or doesn't exist") {
-        res
-          .status(HttpStatusCode.EXPIRED)
-          .json({ message: "OTP expired or doesn't exist" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  resentOtp = async (req: Request, res: Response) => {
+  resentOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const email: string = req.body.email;
+      const { email } = req.body;
       await this.companyService.resentOtp(email);
-      res
-        .status(HttpStatusCode.OK)
-        .json({ success: true, message: "OTP resend successfully" });
-    } catch (error: any) {
-      console.log(`Error in otpVerification at userController : ${error}`);
-      if (error.message === "otp not resend") {
-        res
-          .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: "otp not resend" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+      res.status(HttpStatusCode.OK).json({
+        success: true,
+        message: "OTP resend successfully",
+      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  loginSeeker = async (req: Request, res: Response) => {
+  loginUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
       const serviceResponse = await this.companyService.loginCompany(
@@ -105,80 +66,48 @@ class CompanyController {
       res
         .status(HttpStatusCode.OK)
         .json({ status: true, userData: serviceResponse.companyData });
-    } catch (error: any) {
-      console.log(`Error in userLogin at userController : ${error}`);
-      if (error.message === "email not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "email not found" });
-      } else if (error.message === "wrong password") {
-        res
-          .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: "wrong password" });
-      } else if (error.message === "company is blocked by admin") {
-        res
-          .status(HttpStatusCode.FORBIDDEN)
-          .json({ message: "company is blocked by admin" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  forgotPasswordEmail = async (req: Request, res: Response) => {
+  forgotPasswordEmail = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      const email = req.body.email;
-
-      console.log(email);
+      const { email } = req.body;
       const result = await this.companyService.forgotPasswordEmail(email);
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
-    } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "email not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "email not found" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  forgotPasswordOTP = async (req: Request, res: Response) => {
+  forgotPasswordOTP = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { email, otp } = req.body;
       const result = await this.companyService.forgotPasswordOTP(email, otp);
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
-    } catch (error: any) {
-      console.log(`Error in otpVerification at userController : ${error}`);
-      if (error.message === "incorrect OTP") {
-        res
-          .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: "incorrect OTP" });
-      } else if (error.message === "OTP expired or doesn't exist") {
-        res
-          .status(HttpStatusCode.EXPIRED)
-          .json({ message: "OTP expired or doesn't exist" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  forgotPasswordReset = async (req: Request, res: Response) => {
+  forgotPasswordReset = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const { email, password } = req.body;
       const serviceResponse = await this.companyService.forgotPasswordReset(
@@ -188,56 +117,42 @@ class CompanyController {
       if (serviceResponse) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
-    } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "email not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "email not found" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  getCompanyDetails = async (req: Request, res: Response) => {
+  getCompanyDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const company_id = req.params.company_id;
-      const companyData = await this.companyService.getCompanyDetails(
-        company_id
-      );
-      if (companyData) {
-        res
-          .status(HttpStatusCode.OK)
-          .json({ status: true, companyData: companyData });
+      const { companyProfile, imgBuffer } =
+        await this.companyService.getCompanyDetails(company_id);
+      let imageBase64 = "";
+      if (imgBuffer) {
+        imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
       }
-    } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "email not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "email not found" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        companyProfile,
+        image: imageBase64,
+      });
+    } catch (error) {
+      next(error);
     }
   };
 
-  editCompanyDetails = async (req: Request, res: Response) => {
+  editCompanyDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      console.log("editCompanyDetails");
-      console.log(req.body);
-
       const company_id = req.params.company_id;
       const companyData = req.body;
-      console.log(company_id, companyData);
-
       const result = await this.companyService.editCompanyDetails(
         company_id,
         companyData
@@ -245,147 +160,111 @@ class CompanyController {
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
-    } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "company not updated") {
-        res.status(HttpStatusCode.NOT_FOUND).json({ message: error.message });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  createOrUpdateJobPost = async (req: Request, res: Response) => {
+  createOrUpdateJobPost = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      console.log("createNewJobPost");
-      console.log(req.body);
-
       const jobPostData = req.body;
-
       const result = await this.companyService.createOrUpdateJobPost(
         jobPostData
       );
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
-    } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (
-        error.message ===
-        "error occurred while creating or updating the job post"
-      ) {
-        res.status(HttpStatusCode.CONFLICT).json({ message: error.message });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  jobPostsByCompany = async (req: Request, res: Response) => {
+  jobPostsByCompany = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      console.log("jobPostsByCompany");
-
       const company_id = req.params.company_id;
-
       const result = await this.companyService.jobPostsByCompanyId(company_id);
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true, jobPosts: result });
       }
-    } catch (error: any) {
-      console.log(`Error in jobPostsByCompany at companyController : ${error}`);
-      if (error.message === "Jobs not found for the specified company") {
-        res.status(HttpStatusCode.CONFLICT).json({ message: error.message });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  getJobPostByJobId = async (req: Request, res: Response) => {
+  getJobPostByJobId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      console.log("getJobPostByJobId");
-
       const _id = req.params.job_id;
-
       const result = await this.companyService.getJobPostByJobId(_id);
-      console.log("result - ", result);
-
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true, jobPost: result });
       }
-    } catch (error: any) {
-      console.log(`Error in jobPostsByCompany at companyController : ${error}`);
-      if (error.message === "job is not fount") {
-        res.status(HttpStatusCode.CONFLICT).json({ message: error.message });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  deleteJobPostById = async (req: Request, res: Response) => {
+  deleteJobPostById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      console.log("getJobPostByJobId");
-
       const _id = req.params.job_id;
-
       const result = await this.companyService.deleteJobPostById(_id);
-      console.log("result - ", result);
-
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
-    } catch (error: any) {
-      console.log(`Error in jobPostsByCompany at companyController : ${error}`);
-      if (error.message === "job post not deleted") {
-        res.status(HttpStatusCode.CONFLICT).json({ message: error.message });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+    } catch (error) {
+      next(error);
     }
   };
 
-  getJobApplicationsByCompanyId = async (req: Request, res: Response) => {
+  getJobApplicationsByCompanyId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
-      console.log("getJobApplicationsByCompanyId");
-
       const _id = req.params.company_id;
-
       const result = await this.companyService.getJobApplicationsByCompanyId(
         _id
       );
-      console.log("result - ", result);
-
       if (result) {
         res
           .status(HttpStatusCode.OK)
           .json({ status: true, jobApplications: result });
       }
-    } catch (error: any) {
-      console.log(`Error in jobPostsByCompany at companyController : ${error}`);
-      if (error.message === "there is no job application in this company") {
-        res.status(HttpStatusCode.CONFLICT).json({ message: error.message });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateProfileImgController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const company_id = req.params.company_id;
+      const img = req.file;
+      const image = await this.companyService.updateProfileImg(company_id, img);
+      if (image) {
+        res.status(HttpStatusCode.OK).json({ status: true });
       }
+    } catch (error) {
+      next(error);
     }
   };
 }

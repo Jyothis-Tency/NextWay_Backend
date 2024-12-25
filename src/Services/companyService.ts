@@ -5,40 +5,55 @@ import {
   IJobApplication,
 } from "../Interfaces/common_interface";
 import bcrypt from "bcrypt";
-import { v4 as uuid } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { ICompanyRepository } from "../Interfaces/company_repository_interface";
 import { ICompanyServices } from "../Interfaces/company_service_interface";
 import redisClient from "../Utils/redisUtils";
 import otpSender from "../Utils/otpUtils";
 import { createToken, createRefreshToken } from "../Config/jwtConfig";
-import { throwDeprecation } from "process";
+import { ObjectId } from "mongodb";
+import crypto from "crypto";
+import CustomError from "../Utils/customError";
+import HttpStatusCode from "../Enums/httpStatusCodes";
+import FileService from "../Utils/fileUploadUtils";
 
 class CompanyServices implements ICompanyServices {
   private companyRepository: ICompanyRepository;
   private companyData: ICompany | null = null;
+  private fileService: FileService;
 
   constructor(companyRepository: ICompanyRepository) {
     this.companyRepository = companyRepository;
+    this.fileService = new FileService();
   }
 
   registerCompany = async (companyData: ICompany): Promise<boolean> => {
     try {
-      console.log("registerSeeker triggered");
-
-      const alreadyExists: ICompany | null =
-        await this.companyRepository.findByEmail(companyData.email);
+      const alreadyExists = await this.companyRepository.findByEmail(
+        companyData.email
+      );
       if (alreadyExists) {
-        throw new Error("email already exist");
+        throw new CustomError("Email already exists", HttpStatusCode.CONFLICT);
       }
+
+      await redisClient.setEx(
+        `${companyData.email}:data`,
+        300,
+        JSON.stringify(companyData)
+      );
       this.companyData = companyData;
+
       const otpSended = await otpSender(companyData.email);
       if (!otpSended) {
-        throw new Error("otp not send");
+        throw new CustomError("Failed to send OTP", HttpStatusCode.BAD_REQUEST);
       }
       return true;
-    } catch (error) {
-      console.log(`Error in registerSeeker at seekerServices : ${error}`);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in company registration: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -47,30 +62,55 @@ class CompanyServices implements ICompanyServices {
     receivedOTP: string
   ): Promise<boolean> => {
     try {
-      console.log(`email - ${email}, password - ${receivedOTP}`);
+      const getOTP = await redisClient.get(`${email}:otp`);
+      const getData = await redisClient.get(`${email}:data`);
+      const companyData: ICompany | null = getData ? JSON.parse(getData) : null;
 
-      const getOTP = await redisClient.get(email);
-      console.log(`redis otp: ${getOTP}`);
       if (!getOTP) {
-        throw new Error("OTP expired or doesn't exist");
-      } else if (getOTP !== receivedOTP) {
-        throw new Error("incorrect OTP");
+        throw new CustomError(
+          "OTP expired or doesn't exist",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+      if (getOTP !== receivedOTP) {
+        throw new CustomError("Incorrect OTP", HttpStatusCode.BAD_REQUEST);
+      }
+      if (!companyData) {
+        throw new CustomError(
+          "Company data not found",
+          HttpStatusCode.NOT_FOUND
+        );
       }
 
       const hashedPassword = await bcrypt.hash(
-        this.companyData!.password as string,
+        companyData.password as string,
         10
       );
-      this.companyData!.password = hashedPassword;
-      this.companyData!.company_id = uuid();
-      const response: ICompany = await this.companyRepository.register(
-        this.companyData!
-      );
-      await redisClient.del(email);
+      companyData.password = hashedPassword;
+
+      const uuidCode = uuidv4();
+      const hash = crypto.createHash("sha256").update(uuidCode).digest("hex");
+      const objectIdHex = hash.substring(0, 24);
+      const obId = new ObjectId(objectIdHex);
+      companyData.company_id = obId;
+
+      const response = await this.companyRepository.register(companyData);
+      if (!response) {
+        throw new CustomError(
+          "Failed to register company",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+
+      await redisClient.del(`${email}:data`);
+      await redisClient.del(`${email}:otp`);
       return true;
-    } catch (error) {
-      console.log(`Error in otpVerification at userServices : ${error}`);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in OTP verification: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -79,11 +119,18 @@ class CompanyServices implements ICompanyServices {
       await redisClient.del(email);
       const otpSended = await otpSender(email);
       if (!otpSended) {
-        throw new Error("otp not resend");
+        throw new CustomError(
+          "Failed to resend OTP",
+          HttpStatusCode.BAD_REQUEST
+        );
       }
       return true;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in resending OTP: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -96,28 +143,27 @@ class CompanyServices implements ICompanyServices {
     refreshToken: string;
   }> => {
     try {
-      let company = await this.companyRepository.findByEmail(email);
+      const company = await this.companyRepository.findByEmail(email);
       if (!company) {
-        throw new Error("email not found");
+        throw new CustomError("Email not found", HttpStatusCode.NOT_FOUND);
       }
-      console.log(`loginSeeker at seekerServices - ${company}`);
+      if (company.isBlocked) {
+        throw new CustomError(
+          "Company is blocked by admin",
+          HttpStatusCode.FORBIDDEN
+        );
+      }
 
       const comparedPassword = await bcrypt.compare(
         password,
         company.password as string
       );
       if (!comparedPassword) {
-        throw new Error("wrong password");
-      }
-      if (company.isBlocked) {
-        throw new Error("company is blocked by admin");
+        throw new CustomError("Invalid password", HttpStatusCode.UNAUTHORIZED);
       }
 
-      const accessToken = createToken(company.company_id as string, "company");
-      const refreshToken = createRefreshToken(
-        company.company_id as string,
-        "company"
-      );
+      const accessToken = createToken(company.company_id, "company");
+      const refreshToken = createRefreshToken(company.company_id, "company");
       const companyData = {
         company_id: company?.company_id,
         name: company?.name,
@@ -127,9 +173,12 @@ class CompanyServices implements ICompanyServices {
       };
 
       return { companyData, accessToken, refreshToken };
-    } catch (error) {
-      console.log(`Error in login at userServices : ${error}`);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in company login: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -137,41 +186,51 @@ class CompanyServices implements ICompanyServices {
     try {
       let companyData = await this.companyRepository.findByEmail(email);
       if (!companyData) {
-        throw new Error("email not found");
+        throw new CustomError("Email not found", HttpStatusCode.NOT_FOUND);
       }
       const otpSended = await otpSender(companyData.email);
       if (!otpSended) {
-        throw new Error("otp not send");
+        throw new CustomError("Failed to send OTP", HttpStatusCode.BAD_REQUEST);
       }
       return true;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in forgot password email: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
   forgotPasswordOTP = async (
     email: string,
     receivedOTP: string
-  ): Promise<Boolean> => {
+  ): Promise<boolean> => {
     try {
       const getOTP = await redisClient.get(email);
-      console.log(`redis otp: ${getOTP}`);
       if (!getOTP) {
-        throw new Error("OTP expired or doesn't exist");
+        throw new CustomError(
+          "OTP expired or doesn't exist",
+          HttpStatusCode.BAD_REQUEST
+        );
       } else if (getOTP !== receivedOTP) {
-        throw new Error("incorrect OTP");
+        throw new CustomError("Incorrect OTP", HttpStatusCode.BAD_REQUEST);
       }
       await redisClient.del(email);
       return true;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in OTP verification: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
   forgotPasswordReset = async (
     email: string,
     password: string
-  ): Promise<Boolean> => {
+  ): Promise<boolean> => {
     try {
       const hashedPassword = await bcrypt.hash(password as string, 10);
       const updatedUserData = await this.companyRepository.updatePassword(
@@ -179,30 +238,38 @@ class CompanyServices implements ICompanyServices {
         hashedPassword
       );
       if (!updatedUserData) {
-        throw new Error("User not found");
-      }
-      if (updatedUserData.password !== password) {
-        console.log("Password not changed");
+        throw new CustomError("User not found", HttpStatusCode.NOT_FOUND);
       }
       return true;
-    } catch (error) {
-      console.log(`Error in forgotPassword at userServices : ${error}`);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in password reset: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
-  getCompanyDetails = async (company_id: string): Promise<ICompany | null> => {
+  getCompanyDetails = async (company_id: string): Promise<any> => {
     try {
-      const companyData = await this.companyRepository.getCompanyById(
+      const companyProfile = await this.companyRepository.getCompanyById(
         company_id
       );
-      if (!companyData) {
-        throw new Error("Company not found");
+      if (!companyProfile) {
+        throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
       }
-      return companyData;
-    } catch (error) {
-      console.log(`Error in forgotPassword at userServices : ${error}`);
-      throw error;
+
+      let imgBuffer = null;
+      if (companyProfile.profileImage) {
+        imgBuffer = await this.fileService.getFile(companyProfile.profileImage);
+      }
+      return { companyProfile, imgBuffer };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching company profile: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -216,11 +283,18 @@ class CompanyServices implements ICompanyServices {
         companyData
       );
       if (!result) {
-        throw new Error("company not updated");
+        throw new CustomError(
+          "Failed to update company",
+          HttpStatusCode.BAD_REQUEST
+        );
       }
       return true;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error updating company details: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -245,63 +319,74 @@ class CompanyServices implements ICompanyServices {
         jobPostData
       );
       if (!result) {
-        throw new Error(
-          "error occurred while creating or updating the job post"
+        throw new CustomError(
+          "Failed to create or update job post",
+          HttpStatusCode.BAD_REQUEST
         );
       }
       return true;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in job post creation/update: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
-  jobPostsByCompanyId = async (
-    company_id: string
-  ): Promise<IJobPost[] | null> => {
+  jobPostsByCompanyId = async (company_id: string): Promise<IJobPost[]> => {
     try {
-      const allJobPosts = await this.companyRepository.getAllJobs(); // Fetch all job posts
+      const allJobPosts = await this.companyRepository.getAllJobs();
       const jobPosts = allJobPosts.filter(
         (job) => job.company_id === company_id
-      ); // Filter by company_id
-
-      console.log(`Filtered jobPosts - ${jobPosts}`);
+      );
 
       if (!jobPosts || jobPosts.length === 0) {
-        throw new Error("Jobs not found for the specified company");
+        throw new CustomError(
+          "No job posts found for this company",
+          HttpStatusCode.NOT_FOUND
+        );
       }
-
       return jobPosts;
-    } catch (error) {
-      console.log(`Error in jobPostsByCompany at companyService - ${error}`);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching company job posts: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
   getJobPostByJobId = async (_id: string): Promise<IJobPost | null> => {
     try {
       const jobPost = await this.companyRepository.getJobPostById(_id);
-      console.log(`jobPosts - ${jobPost}`);
-
       if (!jobPost) {
-        throw new Error("job is not fount");
+        throw new CustomError("Job post not found", HttpStatusCode.NOT_FOUND);
       }
       return jobPost;
-    } catch (error) {
-      console.log(`Error in getJobsByCompany_Id at companyService - ${error}`);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching job post: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
   deleteJobPostById = async (_id: string): Promise<boolean> => {
     try {
       const result = await this.companyRepository.deleteJobPost(_id);
-      console.log(`results - ${result}`);
-
       if (!result) {
-        throw new Error("job post not deleted");
+        throw new CustomError(
+          "Failed to delete job post",
+          HttpStatusCode.BAD_REQUEST
+        );
       }
       return true;
-    } catch (error) {
-      console.log(`Error in getJobsByCompany_Id at companyService - ${error}`);
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error deleting job post: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -311,12 +396,19 @@ class CompanyServices implements ICompanyServices {
     try {
       const jobApplications =
         await this.companyRepository.jobApplicationsByCompanyId(company_id);
-      if (!jobApplications) {
-        throw new Error("there is no job application in this company");
+      if (!jobApplications || jobApplications.length === 0) {
+        throw new CustomError(
+          "No job applications found for this company",
+          HttpStatusCode.NOT_FOUND
+        );
       }
       return jobApplications;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching job applications: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
   //   allJobPost = async (userId: string): Promise<IJobPost[]> => {
@@ -387,6 +479,39 @@ class CompanyServices implements ICompanyServices {
   //       throw error;
   //     }
   //   };
+
+  updateProfileImg = async (
+    company_id: string,
+    image: any
+  ): Promise<boolean> => {
+    try {
+      const imageUrl = await this.fileService.uploadFile(image);
+      if (!imageUrl) {
+        throw new CustomError(
+          "Failed to upload image",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+
+      const result = await this.companyRepository.postProfileImg(
+        company_id,
+        imageUrl
+      );
+      if (!result) {
+        throw new CustomError(
+          "Failed to update profile image",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+      return result;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in profile image update: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default CompanyServices;

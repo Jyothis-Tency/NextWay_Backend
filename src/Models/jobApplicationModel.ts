@@ -8,9 +8,9 @@ const jobApplication = new Schema<IJobApplication>(
       ref: "JobPost",
       required: true,
     },
-    seeker_id: {
+    user_id: {
       type: String,
-      ref: "Seeker",
+      ref: "User",
       required: true,
     },
     company_id: {
@@ -47,7 +47,7 @@ const jobApplication = new Schema<IJobApplication>(
     },
     status: {
       type: String,
-      enum: ["Pending", "Viewed", "Shortlisted", "Rejected", "Hired"],
+      enum: ["Pending", "Shortlisted", "Rejected", "Hired"],
       default: "Pending",
     },
   },

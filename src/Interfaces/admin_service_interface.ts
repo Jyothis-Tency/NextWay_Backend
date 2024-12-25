@@ -1,4 +1,4 @@
-import { ICompany, ISeeker } from "./common_interface";
+import { ICompany, ISubscriptionPlan, IUser } from "./common_interface";
 
 export interface IAdminServices {
   loginAdmin(
@@ -6,8 +6,13 @@ export interface IAdminServices {
     password: string
   ): { email: string; adminAccessToken: string; adminRefreshToken: string };
 
-  fetchAllSeekerDetails(): Promise<ISeeker[] | null>;
+  fetchAllUserDetails(): Promise<IUser[] | null>;
   fetchAllCompanyDetails(): Promise<ICompany[] | null>;
-  seekerBlockOrUnBlock(seeker_id: string): Promise<ISeeker | null>;
+  userBlockOrUnBlock(user_id: string): Promise<IUser | null>;
   companyBlockOrUnBlock(company_id: string): Promise<ICompany | null>;
+  getSubscriptionPlans(
+    plan_id: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]>;
+  createNewSubscriptionPlan(planData: ISubscriptionPlan): Promise<boolean>;
+  editSubscriptionPlan(planData: ISubscriptionPlan): Promise<boolean>;
 }

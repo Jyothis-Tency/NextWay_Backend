@@ -1,16 +1,17 @@
 import mongoose, { Schema } from "mongoose";
-import { ISeeker } from "../Interfaces/common_interface";
+import { IUser } from "../Interfaces/common_interface";
 
-const seekerSchema = new Schema<ISeeker>(
+const userSchema = new Schema<IUser>(
   {
-    seeker_id: { type: String, required: true },
+    user_id: { type: mongoose.Schema.Types.ObjectId, required: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
-    profilePicture: String,
+
     isBlocked: { type: Boolean, default: false },
+    isSubscribed: { type: Boolean, default: false },
     dob: Date,
     gender: String,
     location: String,
@@ -20,7 +21,6 @@ const seekerSchema = new Schema<ISeeker>(
       enum: ["active", "inactive", "suspended"],
       default: "active",
     },
-    
 
     // Embedded details
     preferredLocation: String,
@@ -29,6 +29,7 @@ const seekerSchema = new Schema<ISeeker>(
     remoteWork: Boolean,
     willingToRelocate: Boolean,
     resume: String,
+    profileImage: String,
     bio: String,
     skills: [String],
     proficiency: [{ skill: String, level: String }],
@@ -60,6 +61,6 @@ const seekerSchema = new Schema<ISeeker>(
   { timestamps: true }
 );
 
-const Seeker = mongoose.model<ISeeker>("Seeker", seekerSchema);
+const User = mongoose.model<IUser>("User", userSchema);
 
-export default Seeker
+export default User

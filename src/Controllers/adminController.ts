@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { IJobPost, ICompany } from "../Interfaces/common_interface";
 import { IAdminServices } from "../Interfaces/admin_service_interface";
 import HttpStatusCode from "../Enums/httpStatusCodes";
@@ -45,22 +45,22 @@ class AdminController {
     }
   };
 
-  fetchAllSeekerDetails = async (req: Request, res: Response) => {
+  fetchAllUserDetails = async (req: Request, res: Response) => {
     try {
-      const seekerData = await this.adminService.fetchAllSeekerDetails();
-      console.log(seekerData);
+      const userData = await this.adminService.fetchAllUserDetails();
+      console.log(userData);
 
-      if (seekerData) {
+      if (userData) {
         res
           .status(HttpStatusCode.OK)
-          .json({ status: true, seekerData: seekerData });
+          .json({ status: true, userData: userData });
       }
     } catch (error: any) {
       console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "seekers data not found") {
+      if (error.message === "users data not found") {
         res
           .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "seekers data not found" });
+          .json({ message: "users data not found" });
       } else {
         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
           message:
@@ -92,24 +92,22 @@ class AdminController {
       }
     }
   };
-  seekerBlockOrUnBlock = async (req: Request, res: Response) => {
+  userBlockOrUnBlock = async (req: Request, res: Response) => {
     try {
       console.log(req.body);
 
-      const seeker_id = req.body.seeker_id;
-      const result = await this.adminService.seekerBlockOrUnBlock(seeker_id);
+      const user_id = req.body.user_id;
+      const result = await this.adminService.userBlockOrUnBlock(user_id);
 
       if (result) {
-        res
-          .status(HttpStatusCode.OK)
-          .json({ status: true, seekerData: result });
+        res.status(HttpStatusCode.OK).json({ status: true, userData: result });
       }
     } catch (error: any) {
       console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "seeker not found") {
+      if (error.message === "user not found") {
         res
           .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "seeker not found" });
+          .json({ message: "user not found" });
       } else {
         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
           message:
@@ -142,6 +140,67 @@ class AdminController {
             "Something has went wrong. Please be calm and try again later.",
         });
       }
+    }
+  };
+
+  getSubscriptionPlan = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const plan_id = req.body.plan_id;
+
+      const result = await this.adminService.getSubscriptionPlans(plan_id);
+
+      if (result) {
+        res.status(HttpStatusCode.OK).json({ planData: result });
+      }
+    } catch (error: any) {
+      console.log(`Error in emailValidation at userController : ${error}`);
+      next(error);
+    }
+  };
+  createNewSubscriptionPlan = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const planData = req.body;
+
+      const result = await this.adminService.createNewSubscriptionPlan(
+        planData
+      );
+
+      if (result) {
+        res.status(HttpStatusCode.OK).json({ status: true });
+      }
+    } catch (error: any) {
+      console.log(`Error in emailValidation at userController : ${error}`);
+      next(error);
+    }
+  };
+  
+  editSubscriptionPlan = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const planData = req.body;
+      console.log(planData);
+      
+      const result = await this.adminService.editSubscriptionPlan(planData);
+
+      if (result) {
+        res
+          .status(HttpStatusCode.OK)
+          .json({ status: true, message: "Plan updated Successfully" });
+      }
+    } catch (error: any) {
+      console.log(`Error in emailValidation at userController : ${error}`);
+      next(error);
     }
   };
 }

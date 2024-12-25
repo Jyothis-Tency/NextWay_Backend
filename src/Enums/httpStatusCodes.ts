@@ -27,4 +27,4 @@ enum HttpStatusCode {
   GATEWAY_TIMEOUT = 504,
 }
 
-export default HttpStatusCode
+export default HttpStatusCode;

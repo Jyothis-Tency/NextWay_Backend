@@ -4,11 +4,15 @@ import { ICompany } from "../Interfaces/common_interface";
 const companySchema = new Schema<ICompany>(
   {
     // Account details
-    company_id: { type: String, required: true, unique: true },
+    company_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      unique: true,
+    },
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
-    profilePicture: String,
+    profileImage: String,
 
     // Company-specific details
     name: { type: String, required: true },
@@ -26,7 +30,7 @@ const companySchema = new Schema<ICompany>(
       {
         employeeId: {
           type: Schema.Types.ObjectId,
-          ref: "Seeker",
+          ref: "User",
           required: true,
         },
         role: { type: String, required: true }, // e.g., "CEO", "HR", "Developer"

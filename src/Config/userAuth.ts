@@ -1,18 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import HttpStatusCode from "../Enums/httpStatusCodes";
-import Seeker from "../Models/seekerModel";
+import User from "../Models/userModel";
 
 async function userAuth(req: Request, res: Response, next: NextFunction) {
   try {
     console.log("userAuth triggered");
 
-    const seeker_id = req.headers["seeker_id"];
+    const user_id = req.headers["user_id"];
 
-    if (seeker_id) {
-      const seeker = await Seeker.findOne({ seeker_id: seeker_id });
+    if (user_id) {
+      const user = await User.findOne({ user_id: user_id });
 
-      if (seeker?.isBlocked === true) {
-        res.status(HttpStatusCode.FORBIDDEN).json("seeker blocked");
+      if (user?.isBlocked === true) {
+        res.status(HttpStatusCode.FORBIDDEN).json("user blocked");
         return;
       }
     }

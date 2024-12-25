@@ -1,14 +1,22 @@
 import mongoose, { Document, ObjectId } from "mongoose";
 
-export interface ISeeker extends Document {
-  seeker_id: string;
+export interface ISubscriptionPlan extends Document {
+  name: string;
+  price: number;
+  duration: number;
+  features: string[];
+  createdAt: Date;
+}
+
+export interface IUser extends Document {
+  user_id: mongoose.Types.ObjectId;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   password: string;
-  profilePicture?: string;
   isBlocked?: boolean;
+  isSubscribed?: boolean;
   dob?: Date;
   gender?: string;
   location?: string;
@@ -22,6 +30,7 @@ export interface ISeeker extends Document {
   willingToRelocate?: boolean;
 
   resume?: string;
+  profileImage?: string;
   bio?: string;
   skills?: string[];
   proficiency?: { skill: string; level: string }[];
@@ -60,18 +69,18 @@ export interface IRecruiter extends Document {
 }
 
 export interface IEmployee {
-  employeeId: mongoose.Types.ObjectId; // Reference to Seeker
+  employeeId: mongoose.Types.ObjectId; // Reference to User
   role: string; // Role in the company (e.g., CEO, HR)
 }
 
 export interface ICompany extends Document {
-  company_id: string; // Unique identifier for the company
+  company_id: mongoose.Types.ObjectId; // Unique identifier for the company
   name: string; // Company name
   email: string; // Company account email
   phone: string; // Company account phone number
   password: string; // Company account password
   isBlocked: boolean;
-  profilePicture?: string; // Optional profile picture URL
+  profileImage?: string; // Optional profile picture URL
 
   description?: string; // Optional company description
   industry?: string; // Optional industry type
@@ -110,7 +119,7 @@ export interface IJobPost extends Document {
 
 export interface IJobApplication extends Document {
   job_id: mongoose.Types.ObjectId;
-  seeker_id: string;
+  user_id: string;
   company_id: string;
   firstName: string;
   lastName: string;
@@ -122,6 +131,49 @@ export interface IJobApplication extends Document {
   status: "Pending" | "Viewed" | "Shortlisted" | "Rejected" | "Hired";
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export interface ISubscriptionDetails {
+  user_id: mongoose.Types.ObjectId; // Reference to the User model
+  plan_id: mongoose.Types.ObjectId; // Reference to the SubscriptionPlan model
+  planName: string; // Name of the subscription plan
+  startDate: Date;
+  features: string[]; // Start date of the subscription
+  endDate: Date; // End date of the subscription
+  price: number; // Price of the subscription
+  paymentId: string; // Payment identifier
+  status: "active" | "expired" | "cancelled"; // Status of the subscription
+  isCurrent?: boolean; // Indicates if this is the user's current subscription
+  createdAt?: Date; // Timestamp when the subscription record was created
+}
+
+export interface ISubscriptionHistory extends Document {
+  user_id: mongoose.Types.ObjectId; // Reference to the User
+  plan_id: mongoose.Types.ObjectId; // Reference to the Subscription Plan
+  planName: string; // Redundant storage for ease of querying
+  startDate: Date;
+  endDate: Date;
+  price: number;
+  paymentId: string; // Razorpay or other payment gateway ID
+  status: "active" | "expired" | "cancelled";
+}
+
+export interface RazorpayOrder {
+  id: string;
+  entity: string;
+  amount: number | string;
+  amount_paid: number;
+  amount_due: number;
+  currency: string;
+  receipt: string | undefined;
+  status: "created" | "attempted" | "paid";
+  attempts: number;
+  created_at: number;
+}
+
+export interface RazorpayOrderReceipt {
+  receipt_id: string;
+  receipt_number: string;
 }
 
 export interface IFile extends Document {
@@ -235,8 +287,8 @@ export interface IUploadFileRequest {
 //   applications: number;
 // }
 
-export interface ICleanSeekerData {
-  seeker_id: string;
+export interface ICleanUserData {
+  user_id: mongoose.Types.ObjectId;
   firstName: string;
   lastName: string;
   email: string;
@@ -245,7 +297,7 @@ export interface ICleanSeekerData {
 }
 
 export interface ICleanCompanyData {
-  company_id: string; // Unique identifier for the company
+  company_id: mongoose.Types.ObjectId; // Unique identifier for the company
   name: string;
   email: string; // Company account email
   phone: string; // Company account phone number

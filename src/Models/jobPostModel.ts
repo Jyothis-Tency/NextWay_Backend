@@ -21,7 +21,7 @@ const jobPostSchema = new Schema<IJobPost>(
     company_id: {
       type: String,
       required: true,
-      ref: "Company", // Reference to the Company model
+      ref: "Company",
     },
     status: {
       type: String,

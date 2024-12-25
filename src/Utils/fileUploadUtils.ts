@@ -19,12 +19,15 @@ class FileService {
       const fileRecord = new File({ filePath: data.Location });
       await fileRecord.save();
 
-      return data.Location; // Return the file URL from S3
+      return params.Key; // Return the file URL from S3
     } catch (error: any) {
       throw new Error("Error uploading file to S3: " + error.message);
     }
   }
   async getFile(key: string): Promise<Buffer> {
+    console.log("S3 getFile");
+    console.log(key);
+    
     const params = {
       Bucket: process.env.AWS_S3_BUCKET_NAME as string,
       Key: key,
@@ -33,11 +36,15 @@ class FileService {
     try {
       const data = await s3.getObject(params).promise();
       if (data.Body) {
+        console.log("data.Body");
+        
         return data.Body as Buffer; // Return the file content as a Buffer
       } else {
+        console.log("File not found in S3.");
         throw new Error("File not found in S3.");
       }
     } catch (error: any) {
+      console.log("Error fetching file from S3: ");
       throw new Error("Error fetching file from S3: " + error.message);
     }
   }

@@ -1,8 +1,16 @@
-import { ICompany, ISeeker } from "./common_interface";
+import { UpdateResult } from "mongoose";
+import { ICompany, IUser, ISubscriptionPlan } from "./common_interface";
 
 export interface IAdminRepository {
-  getAllSeekers(): Promise<ISeeker[] | null>;
+  getAllUsers(): Promise<IUser[] | null>;
   getAllCompanies(): Promise<ICompany[] | null>;
   toggleCompanyBlock(company_id: string): Promise<ICompany | null>;
-  toggleSeekerBlock(seeker_id: string): Promise<ISeeker | null>;
+  toggleUserBlock(user_id: string): Promise<IUser | null>;
+  getSubscriptionPlans(
+    plan_id: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]>;
+  createSubscriptionPlan(
+    planData: ISubscriptionPlan
+  ): Promise<ISubscriptionPlan>;
+  editSubscriptionPlan(planData: ISubscriptionPlan): Promise<UpdateResult>;
 }
