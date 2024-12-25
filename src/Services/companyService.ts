@@ -411,6 +411,52 @@ class CompanyServices implements ICompanyServices {
       );
     }
   };
+
+  getJobApplicationsByJobId = async (
+    jobId: string
+  ): Promise<IJobApplication[]> => {
+    try {
+      const jobApplications =
+        await this.companyRepository.jobApplicationsByJobId(jobId);
+      if (!jobApplications || jobApplications.length === 0) {
+        throw new CustomError(
+          "No job applications found for this job",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      return jobApplications;
+    } catch (error) {
+      throw new CustomError(
+        `Error fetching job applications`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  updateApplicationStatus = async (
+    applicationId: string,
+    status: string
+  ): Promise<boolean> => {
+    try {
+      const updated = await this.companyRepository.updateApplicationStatus(
+        applicationId,
+        status
+      );
+      if (!updated) {
+        throw new CustomError(
+          "Failed to update application status",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+      return true;
+    } catch (error) {
+      throw new CustomError(
+        `Error updating application status`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
   //   allJobPost = async (userId: string): Promise<IJobPost[]> => {
   //     try {
   //       console.log(`Fetching all job posts in recruiter service`);
@@ -508,6 +554,28 @@ class CompanyServices implements ICompanyServices {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         `Error in profile image update: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getJobApplicationById = async (
+    applicationId: string
+  ): Promise<IJobApplication | null> => {
+    try {
+      const application = await this.companyRepository.getJobApplicationById(
+        applicationId
+      );
+      if (!application) {
+        throw new CustomError(
+          "Application not found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      return application;
+    } catch (error) {
+      throw new CustomError(
+        `Error fetching job application`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

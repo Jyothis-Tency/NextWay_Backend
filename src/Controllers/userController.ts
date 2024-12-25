@@ -177,6 +177,8 @@ class UserController {
     try {
       const applicationData = req.body;
       const resume = req.file;
+      applicationData.companyName = req.body.companyName;
+      applicationData.jobTitle = req.body.jobTitle;
       const result = await this.userService.newJobApplication(
         applicationData,
         resume
@@ -220,6 +222,8 @@ class UserController {
 
   verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log("verifyPayment");
+      
       const {
         razorpay_order_id,
         razorpay_payment_id,
@@ -227,6 +231,13 @@ class UserController {
         planId,
         userId,
       } = req.body;
+      console.log(
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        planId,
+        userId
+      );
       const subscription = await this.userService.verifyPayment(
         razorpay_order_id,
         razorpay_payment_id,

@@ -121,6 +121,8 @@ export interface IJobApplication extends Document {
   job_id: mongoose.Types.ObjectId;
   user_id: string;
   company_id: string;
+  companyName: string;
+  jobTitle: string;
   firstName: string;
   lastName: string;
   email: string;

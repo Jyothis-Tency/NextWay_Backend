@@ -9,6 +9,7 @@ import {
   ISubscriptionPlan,
 } from "../Interfaces/common_interface";
 import { ObjectId } from "mongodb";
+import { Types } from "mongoose";
 import Razorpay from "razorpay";
 import razorpayInstance from "../Config/razorpayConfig";
 import CustomError from "../Utils/customError";
@@ -171,7 +172,7 @@ class UserRepository implements IUserRepository {
   ): Promise<ISubscriptionDetails[]> => {
     try {
       const subscriptionHistory = await this.subscriptionDetails.find({
-        user_id: new ObjectId(user_id),
+        user_id: new Types.ObjectId(user_id),
       });
       return subscriptionHistory;
     } catch (error) {
@@ -203,7 +204,7 @@ class UserRepository implements IUserRepository {
   ): Promise<UpdateResult> => {
     try {
       const result = await this.subscriptionDetails.updateMany(
-        { user_id: new ObjectId(user_id) },
+        { user_id: new Types.ObjectId(user_id) },
         { $set: { isCurrent: false } }
       );
       return result;

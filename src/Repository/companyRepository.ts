@@ -170,6 +170,50 @@ class CompanyRepository implements ICompanyRepository {
       );
     }
   };
+
+  jobApplicationsByJobId = async (
+    jobId: string
+  ): Promise<IJobApplication[]> => {
+    try {
+      return await this.jobApplication.find({ job_id: jobId });
+    } catch (error) {
+      throw new CustomError(
+        `Error fetching job applications`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  updateApplicationStatus = async (
+    applicationId: string,
+    status: string
+  ): Promise<boolean> => {
+    try {
+      const result = await this.jobApplication.updateOne(
+        { _id: applicationId },
+        { $set: { status } }
+      );
+      return result.modifiedCount > 0;
+    } catch (error) {
+      throw new CustomError(
+        `Error updating application status`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getJobApplicationById = async (
+    applicationId: string
+  ): Promise<IJobApplication | null> => {
+    try {
+      return await this.jobApplication.findOne({ _id: applicationId });
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching job application by ID",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default CompanyRepository;

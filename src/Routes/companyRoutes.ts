@@ -73,6 +73,20 @@ companyRoutes.post(
   companyController.updateProfileImgController
 );
 
+companyRoutes.get(
+  "/job-applications-post/:jobId",
+  companyController.getJobApplicationsByJobId
+);
+companyRoutes.put(
+  "/update-application-status/:applicationId",
+  companyController.updateApplicationStatus
+);
+
+companyRoutes.get(
+  "/job-applications-detailed/:applicationId",
+  companyAuth,
+  companyController.getJobApplicationById
+);
 
 // companyRoutes.post("/createPost", companyController.newJobPosted);
 // companyRoutes.post("/createCompany", companyController.newCompanyCreated);

@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { IJobPost, ICompany } from "../Interfaces/common_interface";
+import {
+  IJobPost,
+  ICompany,
+  IJobApplication,
+} from "../Interfaces/common_interface";
 import { ICompanyServices } from "../Interfaces/company_service_interface";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 
@@ -9,7 +13,11 @@ class CompanyController {
     this.companyService = companyService;
   }
 
-  registerUser = async (req: Request, res: Response, next: NextFunction) => {
+  registerUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const companyData: ICompany = req.body;
       await this.companyService.registerCompany(companyData);
@@ -19,7 +27,11 @@ class CompanyController {
     }
   };
 
-  otpVerification = async (req: Request, res: Response, next: NextFunction) => {
+  otpVerification = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { receivedOTP, email } = req.body;
       await this.companyService.otpVerification(email, receivedOTP);
@@ -29,7 +41,11 @@ class CompanyController {
     }
   };
 
-  resentOtp = async (req: Request, res: Response, next: NextFunction) => {
+  resentOtp = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { email } = req.body;
       await this.companyService.resentOtp(email);
@@ -42,7 +58,11 @@ class CompanyController {
     }
   };
 
-  loginUser = async (req: Request, res: Response, next: NextFunction) => {
+  loginUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const { email, password } = req.body;
       const serviceResponse = await this.companyService.loginCompany(
@@ -75,7 +95,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const { email } = req.body;
       const result = await this.companyService.forgotPasswordEmail(email);
@@ -91,7 +111,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const { email, otp } = req.body;
       const result = await this.companyService.forgotPasswordOTP(email, otp);
@@ -107,7 +127,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const { email, password } = req.body;
       const serviceResponse = await this.companyService.forgotPasswordReset(
@@ -126,7 +146,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const company_id = req.params.company_id;
       const { companyProfile, imgBuffer } =
@@ -149,7 +169,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const company_id = req.params.company_id;
       const companyData = req.body;
@@ -169,7 +189,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const jobPostData = req.body;
       const result = await this.companyService.createOrUpdateJobPost(
@@ -187,7 +207,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const company_id = req.params.company_id;
       const result = await this.companyService.jobPostsByCompanyId(company_id);
@@ -203,7 +223,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const _id = req.params.job_id;
       const result = await this.companyService.getJobPostByJobId(_id);
@@ -219,7 +239,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const _id = req.params.job_id;
       const result = await this.companyService.deleteJobPostById(_id);
@@ -235,7 +255,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const _id = req.params.company_id;
       const result = await this.companyService.getJobApplicationsByCompanyId(
@@ -255,7 +275,7 @@ class CompanyController {
     req: Request,
     res: Response,
     next: NextFunction
-  ) => {
+  ): Promise<void> => {
     try {
       const company_id = req.params.company_id;
       const img = req.file;
@@ -263,6 +283,60 @@ class CompanyController {
       if (image) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getJobApplicationsByJobId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const jobId = req.params.jobId;
+      const jobApplications =
+        await this.companyService.getJobApplicationsByJobId(jobId);
+      res.status(HttpStatusCode.OK).json({ status: true, jobApplications });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateApplicationStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { applicationId } = req.params;
+      const { status } = req.body;
+      await this.companyService.updateApplicationStatus(applicationId, status);
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        message: "Application status updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getJobApplicationById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { applicationId } = req.params;
+      const application = await this.companyService.getJobApplicationById(
+        applicationId
+      );
+      if (!application) {
+        res
+          .status(HttpStatusCode.NOT_FOUND)
+          .json({ message: "Application not found" });
+      }
+      res.status(HttpStatusCode.OK).json({ status: true, application });
     } catch (error) {
       next(error);
     }

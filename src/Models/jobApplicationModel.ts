@@ -50,6 +50,14 @@ const jobApplication = new Schema<IJobApplication>(
       enum: ["Pending", "Shortlisted", "Rejected", "Hired"],
       default: "Pending",
     },
+    companyName: {
+      type: String,
+      required: true,
+    },
+    jobTitle: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields

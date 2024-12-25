@@ -5,7 +5,6 @@ import {
   IJobApplication,
 } from "./common_interface";
 
-
 export interface ICompanyServices {
   registerCompany(companyData: ICompany): Promise<boolean>;
   otpVerification(email: string, receivedOTP: string): Promise<boolean>;
@@ -35,4 +34,10 @@ export interface ICompanyServices {
   deleteJobPostById(_id: string): Promise<boolean>;
   getJobApplicationsByCompanyId(company_id: string): Promise<IJobApplication[]>;
   updateProfileImg(company_id: string, image: any): Promise<boolean>;
+  getJobApplicationsByJobId(jobId: string): Promise<IJobApplication[]>;
+  updateApplicationStatus(
+    applicationId: string,
+    status: string
+  ): Promise<boolean>;
+  getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
 }

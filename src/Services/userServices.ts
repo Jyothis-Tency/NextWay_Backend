@@ -346,8 +346,6 @@ class UserServices implements IUserServices {
     resumeFile: any
   ): Promise<IJobApplication> => {
     try {
-      console.log("new job application service");
-
       const resumeUrl = await this.fileService.uploadFile(resumeFile);
       if (!resumeUrl) {
         throw new CustomError(
@@ -367,12 +365,10 @@ class UserServices implements IUserServices {
         );
       }
 
-      if (result) {
-        this.io.emit("jobApplicationSubmitted", {
-          message: "You have received new job application",
-          applicationData: result,
-        });
-      }
+      this.io.emit("jobApplicationSubmitted", {
+        message: "You have received new job application",
+        applicationData: result,
+      });
 
       return result;
     } catch (error: any) {
@@ -464,6 +460,8 @@ class UserServices implements IUserServices {
     planId: string
   ): Promise<ISubscriptionDetails> => {
     try {
+      console.log("verifyPayment");
+      
       const body = `${razorpayOrderId}|${razorpayPaymentId}`;
       const expectedSignature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET as string)
@@ -491,12 +489,12 @@ class UserServices implements IUserServices {
 
       const deactivateResult =
         await this.userRepository.deactivateUserSubscriptions(userId);
-      if (!deactivateResult.modifiedCount) {
-        throw new CustomError(
-          "Failed to deactivate existing subscriptions",
-          HttpStatusCode.BAD_REQUEST
-        );
-      }
+      // if (!deactivateResult.modifiedCount) {
+      //   throw new CustomError(
+      //     "Failed to deactivate existing subscriptions",
+      //     HttpStatusCode.BAD_REQUEST
+      //   );
+      // }
 
       const subscriptionDetails: ISubscriptionDetails = {
         user_id: new ObjectId(userId),
@@ -583,12 +581,12 @@ class UserServices implements IUserServices {
         user_id
       );
       console.log(applications);
-      if (!applications || applications.length === 0) {
-        throw new CustomError(
-          "No job applications found for this user",
-          HttpStatusCode.NOT_FOUND
-        );
-      }
+      // if (!applications || applications.length === 0) {
+      //   throw new CustomError(
+      //     "No job applications found for this user",
+      //     HttpStatusCode.NOT_FOUND
+      //   );
+      // }
       return applications;
     } catch (error: any) {
       if (error instanceof CustomError) throw error;

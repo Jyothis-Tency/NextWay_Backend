@@ -16,7 +16,12 @@ export interface ICompanyRepository {
   deleteJobPost(_id: string): Promise<boolean>;
   jobApplicationsByCompanyId(company_id: string): Promise<IJobApplication[]>;
   postProfileImg(user_id: string, url: string): Promise<boolean>;
-
+  jobApplicationsByJobId(jobId: string): Promise<IJobApplication[]>;
+  updateApplicationStatus(
+    applicationId: string,
+    status: string
+  ): Promise<boolean>;
+  getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
   // getAllJobPost(userId: string): Promise<IJobPost[]>;
   // findByTitle(title: string): Promise<IJobPost | null>;
   // findCompany(name: string): Promise<ICompany | null>;
