@@ -74,6 +74,16 @@ class UserServices implements IUserServices {
         throw new CustomError("Invalid password", HttpStatusCode.UNAUTHORIZED);
       }
 
+      let imgBuffer;
+      if (user.profileImage) {
+        imgBuffer = await this.fileService.getFile(user.profileImage);
+      }
+      
+      let imageBase64 = "";
+      if (imgBuffer) {
+        imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
+      }
+
       const accessToken = createToken(user.user_id, "user");
       const refreshToken = createRefreshToken(user.user_id, "user");
       const userData = {
@@ -83,6 +93,7 @@ class UserServices implements IUserServices {
         email: user?.email,
         phone: user?.phone,
         isBlocked: user?.isBlocked,
+        profileImage: imageBase64,
       };
 
       return { userData, accessToken, refreshToken };
@@ -461,7 +472,7 @@ class UserServices implements IUserServices {
   ): Promise<ISubscriptionDetails> => {
     try {
       console.log("verifyPayment");
-      
+
       const body = `${razorpayOrderId}|${razorpayPaymentId}`;
       const expectedSignature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET as string)
@@ -592,6 +603,17 @@ class UserServices implements IUserServices {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         `Error fetching job applications: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  searchUser = async (query: string): Promise<IUser[]> => {
+    try {
+      return await this.userRepository.searchByUserName(query);
+    } catch (error: any) {
+      throw new CustomError(
+        `Error searching for companies: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

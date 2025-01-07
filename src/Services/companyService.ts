@@ -161,7 +161,14 @@ class CompanyServices implements ICompanyServices {
       if (!comparedPassword) {
         throw new CustomError("Invalid password", HttpStatusCode.UNAUTHORIZED);
       }
-
+      let imgBuffer;
+      if (company.profileImage) {
+        imgBuffer = await this.fileService.getFile(company.profileImage);
+      }
+      let imageBase64 = "";
+      if (imgBuffer) {
+        imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
+      }
       const accessToken = createToken(company.company_id, "company");
       const refreshToken = createRefreshToken(company.company_id, "company");
       const companyData = {
@@ -170,6 +177,7 @@ class CompanyServices implements ICompanyServices {
         email: company?.email,
         phone: company?.phone,
         isBlocked: company?.isBlocked,
+        profileImage: imageBase64,
       };
 
       return { companyData, accessToken, refreshToken };
@@ -457,75 +465,6 @@ class CompanyServices implements ICompanyServices {
     }
   };
 
-  //   allJobPost = async (userId: string): Promise<IJobPost[]> => {
-  //     try {
-  //       console.log(`Fetching all job posts in recruiter service`);
-  //       const jobPosts: IJobPost[] = await this.recruiterRepository.getAllJobPost(
-  //         userId
-  //       );
-  //       return jobPosts;
-  //     } catch (error) {
-  //       console.error(`Error in allJobPost at recruiter service: ${error}`);
-  //       throw error;
-  //     }
-  //   };
-
-  //   newJobPost = async (jobData: IJobPost, userId: string): Promise<boolean> => {
-  //     try {
-  //       console.log(`newJobPost in recruiter service`);
-  //       console.log(jobData);
-
-  //       const jobPostExisted: IJobPost | null =
-  //         await this.recruiterRepository.findByTitle(jobData.title);
-  //       if (jobPostExisted) {
-  //         throw new Error("this job already existed");
-  //       }
-  //       await this.recruiterRepository.createJob(jobData, userId);
-  //       return true;
-  //     } catch (error) {
-  //       throw error;
-  //     }
-  //   };
-
-  //   newCompany = async (
-  //     companyData: ICompany,
-  //     userId: string
-  //   ): Promise<boolean> => {
-  //     try {
-  //       console.log(`newCompany in recruiter service`);
-  //       console.log(companyData);
-
-  //       // Check if a company with the same name already exists
-  //       const existingCompany: ICompany | null =
-  //         await this.recruiterRepository.findCompany(companyData.name);
-  //       if (existingCompany) {
-  //         throw new Error("This company already exists");
-  //       }
-
-  //       // Save the new company to the database
-  //       await this.recruiterRepository.createCompany(companyData, userId);
-  //       return true;
-  //     } catch (error) {
-  //       console.log(`Error in newCompany at recruiterService: ${error}`);
-  //       throw error;
-  //     }
-  //   };
-
-  //   getCompanyDetails = async (userId: string): Promise<ICompany | null> => {
-  //     try {
-  //       const company = await this.recruiterRepository.companyDetails(userId);
-
-  //       if (!company) {
-  //         throw new Error("there is no company existed");
-  //       }
-
-  //       return company;
-  //     } catch (error) {
-  //       console.error("Error in getCompanyByUserId service:", error);
-  //       throw error;
-  //     }
-  //   };
-
   updateProfileImg = async (
     company_id: string,
     image: any
@@ -576,6 +515,17 @@ class CompanyServices implements ICompanyServices {
     } catch (error) {
       throw new CustomError(
         `Error fetching job application`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  searchCompany = async (query: string): Promise<ICompany[]> => {
+    try {
+      return await this.companyRepository.searchByCompanyName(query);
+    } catch (error: any) {
+      throw new CustomError(
+        `Error searching for companies: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

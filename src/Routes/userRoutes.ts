@@ -81,5 +81,6 @@ userRoutes.get(
   userAuth,
   userController.getJobApplicationsByUserId
 );
+userRoutes.get("/search/users", userController.searchUser);
 
 export default userRoutes;

@@ -263,6 +263,19 @@ class UserRepository implements IUserRepository {
       );
     }
   };
+
+  searchByUserName = async (name: string): Promise<IUser[]> => {
+    try {
+      const result = await this.user.find({ firstName: { $regex: name, $options: "i" } });
+      console.log(result)
+      return result
+    } catch (error) {
+      throw new CustomError(
+        "Error searching for companies",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default UserRepository;

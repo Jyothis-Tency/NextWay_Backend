@@ -29,7 +29,6 @@ export interface IUserRepository {
   getCurrentSubscriptionDetails(
     user_id: string
   ): Promise<ISubscriptionDetails | null>;
-  getJobApplicationsByUserId (
-    user_id: string
-  ): Promise<IJobApplication[]>
+  getJobApplicationsByUserId(user_id: string): Promise<IJobApplication[]>;
+  searchByUserName(name: string): Promise<IUser[]>;
 }

@@ -22,6 +22,7 @@ export interface ICompanyRepository {
     status: string
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
+  searchByCompanyName(name: string): Promise<ICompany[]>;
   // getAllJobPost(userId: string): Promise<IJobPost[]>;
   // findByTitle(title: string): Promise<IJobPost | null>;
   // findCompany(name: string): Promise<ICompany | null>;

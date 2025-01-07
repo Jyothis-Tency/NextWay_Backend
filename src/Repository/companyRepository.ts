@@ -214,6 +214,17 @@ class CompanyRepository implements ICompanyRepository {
       );
     }
   };
+
+  searchByCompanyName = async (name: string): Promise<ICompany[]> => {
+    try {
+      return await this.company.find({ name: { $regex: name, $options: "i" } });
+    } catch (error) {
+      throw new CustomError(
+        "Error searching for companies",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default CompanyRepository;

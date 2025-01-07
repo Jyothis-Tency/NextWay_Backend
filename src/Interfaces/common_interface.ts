@@ -296,6 +296,7 @@ export interface ICleanUserData {
   email: string;
   phone: string;
   isBlocked: boolean | undefined;
+  profileImage?: string;
 }
 
 export interface ICleanCompanyData {
@@ -304,4 +305,5 @@ export interface ICleanCompanyData {
   email: string; // Company account email
   phone: string; // Company account phone number
   isBlocked: boolean | undefined;
+  profileImage?: string;
 }

@@ -88,6 +88,8 @@ companyRoutes.get(
   companyController.getJobApplicationById
 );
 
+companyRoutes.get("/search/companies", companyController.searchCompany);
+
 // companyRoutes.post("/createPost", companyController.newJobPosted);
 // companyRoutes.post("/createCompany", companyController.newCompanyCreated);
 // companyRoutes.get(

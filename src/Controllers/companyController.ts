@@ -6,6 +6,7 @@ import {
 } from "../Interfaces/common_interface";
 import { ICompanyServices } from "../Interfaces/company_service_interface";
 import HttpStatusCode from "../Enums/httpStatusCodes";
+import { log } from "console";
 
 class CompanyController {
   private companyService: ICompanyServices;
@@ -337,6 +338,21 @@ class CompanyController {
           .json({ message: "Application not found" });
       }
       res.status(HttpStatusCode.OK).json({ status: true, application });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  searchCompany = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { query } = req.query;
+      console.log(query);
+
+      const companies = await this.companyService.searchCompany(
+        query as string
+      );
+      log(companies);
+      res.status(HttpStatusCode.OK).json(companies);
     } catch (error) {
       next(error);
     }

@@ -223,7 +223,7 @@ class UserController {
   verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       console.log("verifyPayment");
-      
+
       const {
         razorpay_order_id,
         razorpay_payment_id,
@@ -300,6 +300,16 @@ class UserController {
         user_id
       );
       res.status(HttpStatusCode.OK).json({ status: true, applications });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  searchUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { query } = req.query;
+      const users = await this.userService.searchUser(query as string);
+      res.status(HttpStatusCode.OK).json(users);
     } catch (error) {
       next(error);
     }

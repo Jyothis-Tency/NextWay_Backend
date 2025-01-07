@@ -51,4 +51,5 @@ export interface IUserServices {
   getJobApplicationsByUserId(
     user_id: string
   ): Promise<IJobApplication[]>
+  searchUser(query: string): Promise<IUser[]>
 }
