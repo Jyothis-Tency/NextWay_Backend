@@ -16,9 +16,9 @@ const SubscriptionDetailsSchema = new Schema<ISubscriptionDetails>({
   paymentId: { type: String, required: true },
   status: {
     type: String,
-    enum: ["active", "expired", "cancelled"],
     required: true,
   },
+  subscriptionId: { type: String, required: true },
   isCurrent: { type: Boolean, default: false }, // Indicates if this is the user's current subscription
   createdAt: { type: Date, default: Date.now },
 });

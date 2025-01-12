@@ -14,6 +14,7 @@ import companyRoutes from "./Routes/companyRoutes";
 import adminRoutes from "./Routes/AdminRoutes";
 import chatRoutes from "./Routes/chatRoutes";
 import errorHandler from "./Middleware/errorHandler";
+import subscriptionRoutes from "./Routes/subscriptionRoutes";
 
 dotenv.config();
 
@@ -31,7 +32,8 @@ app.use(morgan("dev"));
 app.use("/data/user", userRoutes);
 app.use("/data/company", companyRoutes);
 app.use("/data/admin", adminRoutes);
-app.use("/data/chat",chatRoutes)
+app.use("/data/chat", chatRoutes)
+app.use("/data/subscribe",subscriptionRoutes)
 
 app.use(errorHandler);
 

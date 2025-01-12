@@ -144,20 +144,27 @@ export interface ISubscriptionDetails {
   endDate: Date; // End date of the subscription
   price: number; // Price of the subscription
   paymentId: string; // Payment identifier
-  status: "active" | "expired" | "cancelled"; // Status of the subscription
+  status: String;
+  subscriptionId?: string; // Status of the subscription
   isCurrent?: boolean; // Indicates if this is the user's current subscription
   createdAt?: Date; // Timestamp when the subscription record was created
 }
 
-export interface ISubscriptionHistory extends Document {
-  user_id: mongoose.Types.ObjectId; // Reference to the User
-  plan_id: mongoose.Types.ObjectId; // Reference to the Subscription Plan
-  planName: string; // Redundant storage for ease of querying
-  startDate: Date;
-  endDate: Date;
-  price: number;
-  paymentId: string; // Razorpay or other payment gateway ID
-  status: "active" | "expired" | "cancelled";
+// export interface ISubscriptionHistory extends Document {
+//   user_id: mongoose.Types.ObjectId; // Reference to the User
+//   plan_id: mongoose.Types.ObjectId; // Reference to the Subscription Plan
+//   planName: string; // Redundant storage for ease of querying
+//   startDate: Date;
+//   endDate: Date;
+//   price: number;
+//   paymentId: string; // Razorpay or other payment gateway ID
+//   status: "active" | "expired" | "cancelled";
+// }
+
+export interface IOrderResponse {
+  orderId: string;
+  amount: string|number;
+  currency: string;
 }
 
 export interface RazorpayOrder {
