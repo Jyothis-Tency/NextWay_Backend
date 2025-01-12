@@ -15,7 +15,8 @@ class SubscriptionController {
     next: NextFunction
   ) => {
     try {
-      const { userId, planId } = req.body;
+      console.log(req.body);
+      const { userId, planId } = req.body.data;
       const subscription =
         await this.subscriptionService.initializeSubscription(userId, planId);
 
@@ -67,17 +68,17 @@ class SubscriptionController {
     next: NextFunction
   ) => {
     try {
-      const { event, data } = req.body;
+      console.log("WebhookController received");
+      
+      const { event, payload } = req.body;
       const signature = req.headers["x-razorpay-signature"] as string;
-      const result = await this.subscriptionService.webHookService(
+      await this.subscriptionService.webHookService(
         event,
-        data,
+        payload,
         signature,
         req.body
       );
-      res
-        .status(HttpStatusCode.OK)
-        .json({ message: "Webhook processed successfully", result });
+      res.status(HttpStatusCode.OK).json({ received: true });
     } catch (error) {
       next(error);
     }

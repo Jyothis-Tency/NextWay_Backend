@@ -22,7 +22,7 @@ const userRepository = new UserRepository(
   SubscriptionDetails,
   SubscriptionPlan
 );
-    const subscriptionServices = new SubscriptionServices(
+const subscriptionServices = new SubscriptionServices(
   subscriptionRepository,
   userRepository
 );
@@ -35,10 +35,7 @@ subscriptionRoutes.post(
   subscriptionController.initializeSubscription
 );
 
-subscriptionRoutes.post(
-  "/verify",
-  subscriptionController.verifyPayment
-);
+subscriptionRoutes.post("/verify", subscriptionController.verifyPayment);
 
 subscriptionRoutes.delete(
   "/cancel/:subscriptionId",
@@ -46,8 +43,8 @@ subscriptionRoutes.delete(
 );
 
 subscriptionRoutes.post(
-  "/payment",
-  express.raw({ type: "application/json" }),
+  "/webhook",
+  // express.raw({ type: "application/json" }),
   subscriptionController.webHookController
 );
 

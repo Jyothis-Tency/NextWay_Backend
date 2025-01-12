@@ -6,6 +6,7 @@ import {
 } from "../Interfaces/common_interface";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
+import { UpdateResult } from "mongodb";
 
 class SubscriptionRepository implements ISubscriptionRepository {
   private subscriptionPlan: Model<ISubscriptionPlan>;
@@ -46,14 +47,14 @@ class SubscriptionRepository implements ISubscriptionRepository {
   };
 
   updateSubscriptionStatus = async (
-    subscriptionId: string,
-    status: string
-  ): Promise<ISubscriptionDetails | null> => {
+    matchCriteria: Record<string, any>,
+    updateValues: Record<string, any>
+  ): Promise<UpdateResult> => {
     try {
-      return await this.subscriptionDetails.findByIdAndUpdate(
-        subscriptionId,
-        { status },
-        { new: true }
+      return await this.subscriptionDetails.updateMany(
+        matchCriteria,
+        updateValues,
+        { upsert: false } // This is to prevent creating a new document if it doesn't exist
       );
     } catch (error) {
       throw new CustomError(
@@ -67,7 +68,9 @@ class SubscriptionRepository implements ISubscriptionRepository {
     subscriptionId: string
   ): Promise<ISubscriptionDetails | null> => {
     try {
-      return await this.subscriptionDetails.findOne({subscriptionId: subscriptionId});
+      return await this.subscriptionDetails.findOne({
+        subscriptionId: subscriptionId,
+      });
     } catch (error) {
       throw new CustomError(
         "Error fetching current subscription by user ID",

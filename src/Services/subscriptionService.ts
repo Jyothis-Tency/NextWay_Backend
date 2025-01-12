@@ -31,6 +31,9 @@ class SubscriptionServices implements ISubscriptionServices {
     planId: string
   ): Promise<IOrderResponse> => {
     try {
+      console.log("userId", userId);
+      console.log("planId", planId);
+
       const plan = await this.subscriptionRepository.findSubscriptionPlanById(
         planId
       );
@@ -56,7 +59,8 @@ class SubscriptionServices implements ISubscriptionServices {
         amount: order.amount,
         currency: order.currency,
       };
-    } catch (error) {
+    } catch (error: any) {
+      console.error(error.message);
       throw new CustomError(
         "Error creating subscription details",
         HttpStatusCode.INTERNAL_SERVER_ERROR
@@ -128,8 +132,8 @@ class SubscriptionServices implements ISubscriptionServices {
       await razorpayInstance.subscriptions.cancel(subscriptionId);
       // Update subscription status in the database
       await this.subscriptionRepository.updateSubscriptionStatus(
-        subscriptionId,
-        "cancelled"
+        { subscriptionId: subscriptionId },
+        { status: "cancelled" }
       );
       return true;
     } catch (error) {
@@ -147,6 +151,12 @@ class SubscriptionServices implements ISubscriptionServices {
     body: any
   ): Promise<boolean> => {
     try {
+      console.log("WebhookService received");
+      console.log("event", event);
+      console.log("payload", payload);
+      console.log("signature", signature);
+      console.log("body", body.payload);
+      
       const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
       if (!secret) {
         throw new CustomError(
@@ -157,8 +167,10 @@ class SubscriptionServices implements ISubscriptionServices {
       const jsonBody = JSON.parse(body);
       const generatedSignature = crypto
         .createHmac("sha256", secret)
-        .update(JSON.stringify(jsonBody))
+        .update(jsonBody)
         .digest("hex");
+      console.log("generatedSignature", generatedSignature);
+      console.log("signature", signature);
       if (signature === generatedSignature) {
         console.log("Webhook received successfully");
       } else {
@@ -168,23 +180,24 @@ class SubscriptionServices implements ISubscriptionServices {
         );
       }
 
-      // switch (event) {
-      //   case "subscription.activated":
-      //     await this.handleSubscriptionActivated(payload);
-      //     break;
-      //   case "subscription.charged":
-      //     await this.handleSubscriptionCharged(payload);
-      //     break;
-      //   case "subscription.cancelled":
-      //     await this.handleSubscriptionCancelled(payload);
-      //     break;
-      //   case "subscription.pending":
-      //     await this.handleSubscriptionPending(payload);
-      //     break;
-      // }
+      switch (event) {
+        case "subscription.activated":
+          await this.handleSubscriptionActivated(payload);
+          break;
+        case "subscription.charged":
+          await this.handleSubscriptionCharged(payload);
+          break;
+        case "subscription.cancelled":
+          await this.handleSubscriptionCancelled(payload);
+          break;
+        case "subscription.pending":
+          await this.handleSubscriptionPending(payload);
+          break;
+      }
 
       return true;
-    } catch (error) {
+    } catch (error:any) {
+      console.error(error.message);
       throw new CustomError(
         "Error creating subscription details",
         HttpStatusCode.INTERNAL_SERVER_ERROR
@@ -192,22 +205,88 @@ class SubscriptionServices implements ISubscriptionServices {
     }
   };
 
-  // handleSubscriptionCharged=async(payload: any) =>{
-  //   const { subscription } = payload;
+  private handleSubscriptionActivated = async (payload: any) => {
+    const { subscription } = payload;
+    const { userId, planId } = subscription.notes;
 
-  //   // Update subscription end date
-  //   const subscriptionDetails = await this.subscriptionRepository.findSubscription(subscription.id);
+    const plan = await this.subscriptionRepository.findSubscriptionPlanById(
+      planId
+    );
 
-  //   if (subscriptionDetails) {
-  //     const plan = await SubscriptionPlan.findById(subscriptionDetails.plan_id);
+    if (!plan) {
+      throw new CustomError("Plan not found", HttpStatusCode.NOT_FOUND);
+    }
 
-  //     subscriptionDetails.endDate = new Date(
-  //       subscriptionDetails.endDate.getTime() +
-  //         plan.duration * 24 * 60 * 60 * 1000
-  //     );
-  //     await subscriptionDetails.save();
-  //   }
-  // }
+    // Deactivate any current subscription
+    await this.subscriptionRepository.updateSubscriptionStatus(
+      { user_id: userId, isCurrent: true },
+      { isCurrent: false }
+    );
+
+    // Create new subscription details
+    await this.subscriptionRepository.createSubscriptionDetails({
+      user_id: userId,
+      plan_id: planId,
+      planName: plan?.name,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000),
+      price: plan.price,
+      features: plan.features,
+      paymentId: subscription.payment_id,
+      status: "active",
+      isCurrent: true,
+      subscriptionId: subscription.id,
+    });
+  };
+
+  private handleSubscriptionCharged = async (payload: any) => {
+    const { subscription } = payload;
+
+    // Update subscription end date
+    const subscriptionDetails =
+      await this.subscriptionRepository.findSubscription(subscription.id);
+
+    if (subscriptionDetails) {
+      const plan = await this.subscriptionRepository.findSubscriptionPlanById(
+        subscriptionDetails.plan_id.toString()
+      );
+
+      if (!plan) {
+        throw new CustomError("Plan not found", HttpStatusCode.NOT_FOUND);
+      }
+
+      const newDate = new Date(
+        subscriptionDetails.endDate.getTime() +
+          plan.duration * 24 * 60 * 60 * 1000
+      );
+      await this.subscriptionRepository.updateSubscriptionStatus(
+        { subscriptionId: subscriptionDetails.subscriptionId },
+        { endDate: newDate }
+      );
+    }
+  };
+
+  private handleSubscriptionCancelled = async (payload: any) => {
+    const { subscription } = payload;
+
+    await this.subscriptionRepository.updateSubscriptionStatus(
+      { subscriptionId: subscription.id },
+      {
+        status: "cancelled",
+        isCurrent: false,
+        endDate: new Date(),
+      }
+    );
+  };
+
+  private handleSubscriptionPending = async (payload: any) => {
+    const { subscription } = payload;
+
+    await this.subscriptionRepository.updateSubscriptionStatus(
+      { subscriptionId: subscription.id },
+      { status: "pending" }
+    );
+  };
 }
 
 export default SubscriptionServices;
