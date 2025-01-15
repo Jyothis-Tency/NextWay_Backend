@@ -6,6 +6,7 @@ const SubscriptionPlanSchema = new Schema<ISubscriptionPlan>({
   price: { type: Number, required: true },
   duration: { type: Number, required: true },
   features: [{ type: String }],
+  razorpayPlanId: { type: String },
   createdAt: { type: Date, default: Date.now() },
 });
 

@@ -5,6 +5,7 @@ export interface ISubscriptionPlan extends Document {
   price: number;
   duration: number;
   features: string[];
+  razorpayPlanId: string;
   createdAt: Date;
 }
 
@@ -104,7 +105,7 @@ export interface ICompany extends Document {
 export interface IJobPost extends Document {
   title: string;
   description: string;
-  location?: string;
+  location: string;
   employmentType?: "Full-time" | "Part-time" | "Contract" | "Internship";
   salaryRange?: { min: number; max: number };
   requirements?: string[];

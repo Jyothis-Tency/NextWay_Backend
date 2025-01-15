@@ -10,6 +10,8 @@ import {
 import { platform } from "os";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
+import razorpayInstance from "../Config/razorpayConfig";
+import mongoose from "mongoose";
 
 const adminEmail = process.env.ADMIN_EMAIL!;
 const adminPassword = process.env.ADMIN_PASSWORD!;
@@ -125,10 +127,47 @@ class AdminServices implements IAdminServices {
           HttpStatusCode.NOT_FOUND
         );
       }
+
+      // Create plan in Razorpay first
+      const razorpayPlan = await razorpayInstance.plans.create({
+        period: "monthly",
+        interval: 1,
+        item: {
+          name: planData.name,
+          amount: planData.price * 100, // Convert to paise
+          currency: "INR",
+          description: `${
+            planData.name
+          } plan with features: ${planData.features.join(", ")}`,
+        },
+        notes: {
+          duration: planData.duration.toString(),
+          features: planData.features.join(","),
+        },
+      });
+
+      if (!razorpayPlan.id) {
+        throw new CustomError(
+          "Error occurred while creating new plan",
+          HttpStatusCode.NOT_IMPLEMENTED
+        );
+      }
+      // Add Razorpay plan ID to our plan data
+      const planDataWithRazorpay: Partial<ISubscriptionPlan> = {
+        name: planData.name,
+        price: planData.price,
+        duration: planData.duration,
+        features: planData.features,
+        razorpayPlanId: razorpayPlan.id,
+      };
+
       const result = await this.adminRepository.createSubscriptionPlan(
-        planData
+        planDataWithRazorpay as ISubscriptionPlan
       );
+
       if (!result._id) {
+        // If MongoDB creation fails, delete the Razorpay plan
+        // await razorpayInstance.plans.delete(razorpayPlan.id);
         throw new CustomError(
           "Error occurred while creating new plan",
           HttpStatusCode.NOT_IMPLEMENTED
@@ -136,6 +175,7 @@ class AdminServices implements IAdminServices {
       }
       return true;
     } catch (error) {
+      console.error("Error in createNewSubscriptionPlan:", error);
       throw error;
     }
   };
@@ -150,21 +190,56 @@ class AdminServices implements IAdminServices {
           HttpStatusCode.NOT_FOUND
         );
       }
-      const result = await this.adminRepository.editSubscriptionPlan(planData);
-      if (result.matchedCount === 0) {
-        throw new CustomError(
-          "Not found the plan",
-          HttpStatusCode.NOT_FOUND
-        );
+
+      // Get existing plan to check if we need to update Razorpay
+      const existingPlan = (await this.adminRepository.getSubscriptionPlans(
+        (planData._id as mongoose.Types.ObjectId).toString()
+      )) as ISubscriptionPlan;
+
+      if (!existingPlan) {
+        throw new CustomError("Plan not found", HttpStatusCode.NOT_FOUND);
       }
+
+      // If price changed, create new plan in Razorpay (can't update existing plan's price)
+      if (existingPlan.price !== planData.price) {
+        // Create new plan in Razorpay
+        const newRazorpayPlan = await razorpayInstance.plans.create({
+          period: "monthly",
+          interval: 1,
+          item: {
+            name: planData.name,
+            amount: planData.price * 100,
+            currency: "INR",
+            description: `${
+              planData.name
+            } plan with features: ${planData.features.join(", ")}`,
+          },
+          notes: {
+            duration: planData.duration.toString(),
+            features: planData.features.join(","),
+          },
+        });
+
+        // Update plan data with new Razorpay plan ID
+        planData.razorpayPlanId = newRazorpayPlan.id;
+      }
+
+      const result = await this.adminRepository.editSubscriptionPlan(planData);
+
+      if (result.matchedCount === 0) {
+        throw new CustomError("Not found the plan", HttpStatusCode.NOT_FOUND);
+      }
+
       if (result.matchedCount === 1 && result.modifiedCount !== 1) {
         throw new CustomError(
           "Plan exist with same details",
           HttpStatusCode.NOT_IMPLEMENTED
         );
       }
+
       return true;
     } catch (error) {
+      console.error("Error in editSubscriptionPlan:", error);
       throw error;
     }
   };

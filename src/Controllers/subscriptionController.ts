@@ -28,8 +28,11 @@ class SubscriptionController {
 
   verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log("Verify Payment in Subscription Controller");
+      const data = JSON.parse(req.body.body);
       const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
-        req.body;
+        data;
+      console.log(JSON.parse(req.body.body));
       const result = await this.subscriptionService.verifyPayment(
         razorpay_payment_id,
         razorpay_order_id,
@@ -39,7 +42,8 @@ class SubscriptionController {
       res
         .status(HttpStatusCode.OK)
         .json({ success: true, subscriptionId: result });
-    } catch (error) {
+    } catch (error: any) {
+      console.log(error);
       next(error);
     }
   };
@@ -69,7 +73,7 @@ class SubscriptionController {
   ) => {
     try {
       console.log("WebhookController received");
-      
+
       const { event, payload } = req.body;
       const signature = req.headers["x-razorpay-signature"] as string;
       await this.subscriptionService.webHookService(

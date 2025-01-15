@@ -63,6 +63,14 @@ export const initializeSocket = (server: http.Server) => {
       console.log(`Socket ${socket.id} joined room ${chatRoomName}`);
     });
 
+    socket.on("join:subscription", (userId: string) => {
+      const subscriptionRoom = getSubscriptionRoomName(userId);
+      socket.join(subscriptionRoom);
+      console.log(
+        `Socket ${socket.id} joined subscription room ${subscriptionRoom}`
+      );
+    });
+
     socket.on("disconnect", (reason) => {
       console.log("User disconnected:", reason);
     });
@@ -73,6 +81,19 @@ export const initializeSocket = (server: http.Server) => {
 function getChatRoomName(userId: string, companyId: string): string {
   return `chat_${userId}_${companyId}`;
 }
+
+export const getSubscriptionRoomName = (userId: string): string => {
+  return `subscription_${userId}`;
+};
+
+export const emitNewJobNotification = (notification: {
+  title: string;
+  company: string;
+  location: string;
+}) => {
+  const io = getSocketInstance();
+  io.emit("notification:newJob", notification);
+};
 
 export const getSocketInstance = () => {
   if (!io) {

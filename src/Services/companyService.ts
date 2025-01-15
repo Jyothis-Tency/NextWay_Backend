@@ -16,6 +16,14 @@ import crypto from "crypto";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 import FileService from "../Utils/fileUploadUtils";
+import {
+  sendNewJobNotification,
+  sendApplicationStatusUpdate,
+} from "../Utils/emailNotificationUtils";
+import {
+  emitNewJobNotification,
+  // emitApplicationStatusUpdate,
+} from "../Config/socketConfig";
 
 class CompanyServices implements ICompanyServices {
   private companyRepository: ICompanyRepository;
@@ -332,6 +340,24 @@ class CompanyServices implements ICompanyServices {
           HttpStatusCode.BAD_REQUEST
         );
       }
+      if (!jobPostData._id) {
+        const company = await this.companyRepository.getCompanyById(
+          jobPostData.company_id
+        );
+        if (company) {
+          await sendNewJobNotification(
+            company.name,
+            jobPostData.title,
+            jobPostData.location
+          );
+
+          emitNewJobNotification({
+            title: jobPostData.title,
+            company: company.name,
+            location: jobPostData.location,
+          });
+        }
+      }
       return true;
     } catch (error: any) {
       if (error instanceof CustomError) throw error;
@@ -446,16 +472,36 @@ class CompanyServices implements ICompanyServices {
     status: string
   ): Promise<boolean> => {
     try {
-      const updated = await this.companyRepository.updateApplicationStatus(
-        applicationId,
-        status
+      const jobApplication = await this.companyRepository.getJobApplicationById(
+        applicationId
       );
-      if (!updated) {
+      if (!jobApplication) {
         throw new CustomError(
-          "Failed to update application status",
-          HttpStatusCode.BAD_REQUEST
+          "Application not found",
+          HttpStatusCode.NOT_FOUND
         );
       }
+
+      const jobPost = await this.companyRepository.getJobPostById(
+        jobApplication.job_id.toString()
+      );
+      if (!jobPost) {
+        throw new CustomError("Job post not found", HttpStatusCode.NOT_FOUND);
+      }
+
+      const company = await this.companyRepository.getCompanyById(
+        jobPost.company_id
+      );
+      if (!company) {
+        throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
+      }
+
+      await sendApplicationStatusUpdate(
+        jobApplication.email,
+        company.name,
+        jobPost.title,
+        status
+      );
       return true;
     } catch (error) {
       throw new CustomError(

@@ -37,8 +37,10 @@ class SubscriptionRepository implements ISubscriptionRepository {
     details: ISubscriptionDetails
   ): Promise<ISubscriptionDetails> => {
     try {
+      
       return await this.subscriptionDetails.create(details);
-    } catch (error) {
+    } catch (error:any) {
+      
       throw new CustomError(
         "Error creating subscription details",
         HttpStatusCode.INTERNAL_SERVER_ERROR

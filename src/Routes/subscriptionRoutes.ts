@@ -10,6 +10,7 @@ import SubscriptionController from "../Controllers/subscriptionController";
 import User from "../Models/userModel";
 import Company from "../Models/companyModel";
 import JobApplication from "../Models/jobApplicationModel";
+import { getSocketInstance } from "../Config/socketConfig";
 
 const subscriptionRepository = new SubscriptionRepository(
   SubscriptionPlan,
@@ -24,7 +25,8 @@ const userRepository = new UserRepository(
 );
 const subscriptionServices = new SubscriptionServices(
   subscriptionRepository,
-  userRepository
+  userRepository,
+  getSocketInstance()
 );
 const subscriptionController = new SubscriptionController(subscriptionServices);
 
