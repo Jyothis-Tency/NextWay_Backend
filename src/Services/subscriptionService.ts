@@ -10,8 +10,7 @@ import { ISubscriptionServices } from "../Interfaces/subscription_service_interf
 import CustomError from "../Utils/customError";
 import dotenv from "dotenv";
 import crypto from "crypto";
-import { ObjectId } from "mongodb";
-import { log } from "console";
+
 import { getSubscriptionRoomName } from "../Config/socketConfig";
 import { Server } from "socket.io";
 
@@ -36,9 +35,7 @@ class SubscriptionServices implements ISubscriptionServices {
     planId: string
   ): Promise<IOrderResponse> => {
     try {
-      console.log("userId", userId);
-      console.log("planId", planId);
-
+      console.log("initializeSubscription subscriptionService");
       const plan = await this.subscriptionRepository.findSubscriptionPlanById(
         planId
       );
@@ -79,10 +76,8 @@ class SubscriptionServices implements ISubscriptionServices {
     razorpay_signature: string
   ): Promise<string | undefined> => {
     try {
-      console.log("verifyPayment");
-      console.log("razorpay_payment_id", razorpay_payment_id);
-      console.log("razorpay_order_id", razorpay_order_id);
-      console.log("razorpay_signature", razorpay_signature);
+      console.log("verifyPayment subscriptionService");
+
       const order = await razorpayInstance.orders.fetch(razorpay_order_id);
       if (!order.notes) {
         throw new CustomError(
@@ -90,7 +85,6 @@ class SubscriptionServices implements ISubscriptionServices {
           HttpStatusCode.BAD_REQUEST
         );
       }
-      console.log("order.notes in verifyPayment", order.notes);
 
       const secret = process.env.RAZORPAY_KEY_SECRET;
       if (!secret) {
@@ -103,27 +97,21 @@ class SubscriptionServices implements ISubscriptionServices {
         .createHmac("sha256", secret)
         .update(razorpay_order_id + "|" + razorpay_payment_id)
         .digest("hex");
-      log("generatedSignature", generatedSignature);
-      log("razorpay_signature", razorpay_signature);
+
       if (generatedSignature !== razorpay_signature) {
         throw new CustomError("Invalid signature", HttpStatusCode.NOT_FOUND);
       }
 
-      console.log("Signature verification passed");
-
       const planId = order.notes.planId as string | "";
-      console.log("planId:", planId);
 
       const plan = await this.subscriptionRepository.findSubscriptionPlanById(
         planId
       );
-      console.log("plan:", plan);
 
       if (!plan) {
         throw new CustomError("Plan not exist", HttpStatusCode.NOT_FOUND);
       }
 
-      console.log("Creating subscription with planId:", planId);
       // const userId = order.notes.userId?.toString()|""
       // const user = await this.userRepository.getUserById(us);
       // if (!user) {
@@ -140,15 +128,13 @@ class SubscriptionServices implements ISubscriptionServices {
           planId: order.notes.planId,
         },
       });
-      console.log("Created subscription:", subscription);
-      console.log("order.id", order.id);
+
       const updateResult =
         await this.subscriptionRepository.updateSubscriptionStatus(
           { paymentId: order.id },
           { subscriptionId: subscription.id }
         );
-      console.log(subscription.id);
-      console.log("updateResult", updateResult);
+
       return "Subscription created successfully";
     } catch (error: any) {
       console.error("Detailed error:", error);
@@ -161,6 +147,7 @@ class SubscriptionServices implements ISubscriptionServices {
 
   cancelSubscription = async (subscriptionId: string): Promise<boolean> => {
     try {
+      console.log("cancelSubscription subscriptionService");
       const subscriptionDetails =
         await this.subscriptionRepository.findSubscription(subscriptionId);
       if (subscriptionDetails?.status !== "active") {
@@ -181,6 +168,18 @@ class SubscriptionServices implements ISubscriptionServices {
     }
   };
 
+  getAllSubscriptions = async (): Promise<ISubscriptionDetails[]> => {
+    try {
+      console.log("getAllSubscriptions subscriptionService");
+      return await this.subscriptionRepository.findAllSubscriptions();
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching subscription details",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
   webHookService = async (
     event: string,
     payload: any,
@@ -188,11 +187,7 @@ class SubscriptionServices implements ISubscriptionServices {
     body: any
   ): Promise<boolean> => {
     try {
-      console.log("WebhookService received");
-      // console.log("event", event);
-      // console.log("payload", JSON.stringify(payload, null, 2));
-      // console.log("signature", signature);
-      // console.log("body", JSON.stringify(body, null, 2));
+      console.log("WebhookService");
 
       const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
       if (!secret) {
@@ -250,11 +245,9 @@ class SubscriptionServices implements ISubscriptionServices {
 
   // New methods to handle webhook events
   private handleOrderPaid = async (payload: any) => {
-    console.log("handleOrderPaid");
-    console.log("payload", payload);
+    console.log("handleOrderPaid subscriptionService");
 
     const order = payload.order.entity;
-    console.log("order in handleOrderPaid", order);
 
     if (!order || !order.notes) {
       throw new CustomError(
@@ -302,12 +295,11 @@ class SubscriptionServices implements ISubscriptionServices {
   };
 
   private handlePaymentCaptured = async (payload: any) => {
-    console.log("handlePaymentCaptured");
+    console.log("handlePaymentCaptured subscriptionService");
     const { payment } = payload;
-    console.log("payment", payment);
 
     const order = await razorpayInstance.orders.fetch(payment.entity.order_id);
-    console.log("order", order);
+
     // Ensure order is fetched and contains notes
     if (!order || !order.notes) {
       throw new CustomError(
@@ -325,7 +317,7 @@ class SubscriptionServices implements ISubscriptionServices {
   };
 
   private handlePaymentFailed = async (payload: any) => {
-    console.log("handlePaymentFailed");
+    console.log("handlePaymentFailed subscriptionService");
     const { payment } = payload;
 
     // Update subscription status
@@ -336,9 +328,9 @@ class SubscriptionServices implements ISubscriptionServices {
   };
 
   private handleSubscriptionCharged = async (payload: any) => {
-    console.log("handleSubscriptionCharged");
+    console.log("handleSubscriptionCharged subscriptionService");
     const { subscription } = payload;
-    console.log("subscription in handleSubscriptionCharged", subscription);
+
     // Update subscription end date
     const subscriptionDetails =
       await this.subscriptionRepository.findSubscription(subscription.id);
@@ -384,11 +376,9 @@ class SubscriptionServices implements ISubscriptionServices {
   };
 
   private handleSubscriptionCancelled = async (payload: any) => {
-    console.log("handleSubscriptionCancelled");
+    console.log("handleSubscriptionCancelled subscriptionService");
     const { subscription } = payload;
-    console.log("subscription", subscription);
 
-    console.log("subscription.id", subscription.id);
     const updatedSubscription =
       await this.subscriptionRepository.updateSubscriptionStatus(
         { subscriptionId: subscription.entity.id },
@@ -408,7 +398,7 @@ class SubscriptionServices implements ISubscriptionServices {
   };
 
   private handlePaymentAuthorized = async (payload: any) => {
-    console.log("handlePaymentAuthorized");
+    console.log("handlePaymentAuthorized subscriptionService");
     const { payment } = payload;
     // Implement your logic for handling payment authorization
     // console.log("Payment authorized:", payment);

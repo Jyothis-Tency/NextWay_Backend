@@ -12,9 +12,10 @@ const chatRepository = new ChatRepository(ChatModel, UserModel, CompanyModel);
 const chatService = new ChatServices(chatRepository);
 const chatController = new ChatController(chatService);
 
-chatRoutes.get("/user-history", chatController.fetchUserChatHistory);
-chatRoutes.get("/company-history", chatController.fetchCompanyChatHistory);
-chatRoutes.post("/send", chatController.sendMessage);
-chatRoutes.post("/create", chatController.createChat);
+chatRoutes
+  .get("/user-history", chatController.fetchUserChatHistory)
+  .get("/company-history", chatController.fetchCompanyChatHistory)
+  .post("/send", chatController.sendMessage)
+  .post("/create", chatController.createChat);
 
 export default chatRoutes;

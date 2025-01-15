@@ -18,77 +18,72 @@ const companyController = new CompanyController(companyService);
 
 const companyRoutes = Router();
 
-companyRoutes.post("/register", companyController.registerUser);
-companyRoutes.post("/verify-otp", companyController.otpVerification);
-companyRoutes.post("/resent-otp", companyController.resentOtp);
-companyRoutes.post("/login", companyController.loginUser);
-companyRoutes.post(
-  "/forgot-password-email",
-  companyController.forgotPasswordEmail
-);
-companyRoutes.post("/forgot-password-OTP", companyController.forgotPasswordOTP);
-companyRoutes.post(
-  "/forgot-password-reset",
-  companyController.forgotPasswordReset
-);
-companyRoutes.get(
-  "/get-company/:company_id",
-  companyAuth,
-  companyController.getCompanyDetails
-);
-companyRoutes.put(
-  "/edit-company/:company_id",
-  companyAuth,
-  companyController.editCompanyDetails
-);
-companyRoutes.put(
-  "/create-update-job-post",
-  companyAuth,
-  companyController.createOrUpdateJobPost
-);
-companyRoutes.get(
-  "/get-company-jobs/:company_id",
-  companyAuth,
-  companyController.jobPostsByCompany
-);
-companyRoutes.get(
-  "/get-job-post/:job_id",
-  companyAuth,
-  companyController.getJobPostByJobId
-);
-companyRoutes.delete(
-  "/delete-job-post/:job_id",
-  companyAuth,
-  companyController.deleteJobPostById
-);
-companyRoutes.get(
-  "/job-applications/:company_id",
-  companyAuth,
-  companyController.getJobApplicationsByCompanyId
-);
-companyRoutes.post(
-  "/upload-profile-img/:company_id",
-  companyAuth,
-  upload.single("profilePicture"),
-  companyController.updateProfileImgController
-);
+companyRoutes
+  .post("/register", companyController.registerUser)
+  .post("/verify-otp", companyController.otpVerification)
+  .post("/resent-otp", companyController.resentOtp)
+  .post("/login", companyController.loginUser)
+  .post("/forgot-password-email", companyController.forgotPasswordEmail)
+  .post("/forgot-password-OTP", companyController.forgotPasswordOTP)
+  .post("/forgot-password-reset", companyController.forgotPasswordReset)
+  .get(
+    "/get-company/:company_id",
+    companyAuth,
+    companyController.getCompanyDetails
+  )
+  .put(
+    "/edit-company/:company_id",
+    companyAuth,
+    companyController.editCompanyDetails
+  )
+  .put(
+    "/create-update-job-post",
+    companyAuth,
+    companyController.createOrUpdateJobPost
+  )
+  .get(
+    "/get-company-jobs/:company_id",
+    companyAuth,
+    companyController.jobPostsByCompany
+  )
+  .get(
+    "/get-job-post/:job_id",
+    companyAuth,
+    companyController.getJobPostByJobId
+  )
+  .delete(
+    "/delete-job-post/:job_id",
+    companyAuth,
+    companyController.deleteJobPostById
+  )
+  .get(
+    "/job-applications/:company_id",
+    companyAuth,
+    companyController.getJobApplicationsByCompanyId
+  )
+  .post(
+    "/upload-profile-img/:company_id",
+    companyAuth,
+    upload.single("profilePicture"),
+    companyController.updateProfileImgController
+  )
 
-companyRoutes.get(
-  "/job-applications-post/:jobId",
-  companyController.getJobApplicationsByJobId
-);
-companyRoutes.put(
-  "/update-application-status/:applicationId",
-  companyController.updateApplicationStatus
-);
+  .get(
+    "/job-applications-post/:jobId",
+    companyController.getJobApplicationsByJobId
+  )
+  .put(
+    "/update-application-status/:applicationId",
+    companyController.updateApplicationStatus
+  )
 
-companyRoutes.get(
-  "/job-applications-detailed/:applicationId",
-  companyAuth,
-  companyController.getJobApplicationById
-);
+  .get(
+    "/job-applications-detailed/:applicationId",
+    companyAuth,
+    companyController.getJobApplicationById
+  )
 
-companyRoutes.get("/search/companies", companyController.searchCompany);
+  .get("/search/companies", companyController.searchCompany);
 
 // companyRoutes.post("/createPost", companyController.newJobPosted);
 // companyRoutes.post("/createCompany", companyController.newCompanyCreated);

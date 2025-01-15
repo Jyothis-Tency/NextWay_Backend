@@ -5,6 +5,7 @@ import ChatRepository from "../Repository/chatRepository";
 import ChatModel from "../Models/chatModel";
 import UserModel from "../Models/userModel";
 import CompanyModel from "../Models/companyModel";
+import { log } from "console";
 const chatRepository = new ChatRepository(ChatModel, UserModel, CompanyModel);
 const chatService = new ChatServices(chatRepository);
 
@@ -87,10 +88,12 @@ export const getSubscriptionRoomName = (userId: string): string => {
 };
 
 export const emitNewJobNotification = (notification: {
+  job_id: string;
   title: string;
   company: string;
   location: string;
 }) => {
+  log("Emitting new job notification:", notification);
   const io = getSocketInstance();
   io.emit("notification:newJob", notification);
 };

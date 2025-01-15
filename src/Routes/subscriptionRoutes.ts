@@ -32,22 +32,15 @@ const subscriptionController = new SubscriptionController(subscriptionServices);
 
 const subscriptionRoutes = Router();
 
-subscriptionRoutes.post(
-  "/initialize",
-  subscriptionController.initializeSubscription
-);
-
-subscriptionRoutes.post("/verify", subscriptionController.verifyPayment);
-
-subscriptionRoutes.delete(
-  "/cancel/:subscriptionId",
-  subscriptionController.cancelSubscription
-);
-
-subscriptionRoutes.post(
-  "/webhook",
-  // express.raw({ type: "application/json" }),
-  subscriptionController.webHookController
-);
+subscriptionRoutes
+  .post("/initialize", subscriptionController.initializeSubscription)
+  .post("/verify", subscriptionController.verifyPayment)
+  .delete("/cancel/:subscriptionId", subscriptionController.cancelSubscription)
+  .get("/all-Subscriptions", subscriptionController.getAllSubscriptions)
+  .post(
+    "/webhook",
+    // express.raw({ type: "application/json" }),
+    subscriptionController.webHookController
+  );
 
 export default subscriptionRoutes;

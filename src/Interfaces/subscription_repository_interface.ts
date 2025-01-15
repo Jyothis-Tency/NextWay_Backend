@@ -6,11 +6,16 @@ export interface ISubscriptionRepository {
   createSubscriptionDetails(
     details: ISubscriptionDetails
   ): Promise<ISubscriptionDetails>;
-  updateSubscriptionStatus  (
+  updateSubscriptionStatus(
     matchCriteria: Record<string, any>,
     updateValues: Record<string, any>
   ): Promise<UpdateResult>;
   findSubscription(
     subscriptionId: string
   ): Promise<ISubscriptionDetails | null>;
+  findAllSubscriptions(): Promise<ISubscriptionDetails[]>;
+  toggleSubscriptionPlanBlock(
+    plan_id: string,
+    isBlocked: boolean
+  ): Promise<boolean>;
 }

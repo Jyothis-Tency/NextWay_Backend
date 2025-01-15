@@ -173,7 +173,7 @@ class UserRepository implements IUserRepository {
     try {
       const subscriptionHistory = await this.subscriptionDetails.find({
         user_id: new Types.ObjectId(user_id),
-      });
+      }).sort({ createdAt: -1 });
       return subscriptionHistory;
     } catch (error) {
       throw new CustomError(

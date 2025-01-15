@@ -352,6 +352,7 @@ class CompanyServices implements ICompanyServices {
           );
 
           emitNewJobNotification({
+            job_id:result._id as string,
             title: jobPostData.title,
             company: company.name,
             location: jobPostData.location,

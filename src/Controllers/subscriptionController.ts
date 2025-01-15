@@ -66,6 +66,20 @@ class SubscriptionController {
     }
   };
 
+  getAllSubscriptions = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    console.log("Get all subscriptions");
+    try {
+      const subscriptions = await this.subscriptionService.getAllSubscriptions();
+      res.status(HttpStatusCode.OK).json(subscriptions);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   webHookController = async (
     req: Request,
     res: Response,

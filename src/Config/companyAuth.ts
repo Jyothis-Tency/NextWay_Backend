@@ -5,7 +5,6 @@ import Company from "../Models/companyModel";
 const companyAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     console.log("companyAuth triggered");
-    console.log(req.headers);
     
     const company_id = req.headers["company_id"];
     console.log("company_id ",company_id);

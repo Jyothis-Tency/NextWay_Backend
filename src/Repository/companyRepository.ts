@@ -90,14 +90,14 @@ class CompanyRepository implements ICompanyRepository {
     }
   };
 
-  createOrUpdateJobPost = async (jobPostData: IJobPost): Promise<boolean> => {
+  createOrUpdateJobPost = async (jobPostData: IJobPost): Promise<IJobPost> => {
     try {
       const upsertedJobPost = await this.jobPosts.findOneAndUpdate(
         { _id: jobPostData._id || new Types.ObjectId() },
         { $set: jobPostData },
         { upsert: true, new: true }
       );
-      return !!upsertedJobPost;
+      return upsertedJobPost;
     } catch (error) {
       throw new CustomError(
         "Error creating or updating job post",

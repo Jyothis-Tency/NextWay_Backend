@@ -92,6 +92,8 @@ class AdminRepository implements IAdminRepository {
     }
   };
 
+
+
   getSubscriptionPlans = async (
     plan_id?: string
   ): Promise<ISubscriptionPlan | ISubscriptionPlan[]> => {
@@ -154,13 +156,13 @@ class AdminRepository implements IAdminRepository {
         );
       }
       let result = null;
-      
+
       result = await this.subscriptionPlan.updateOne(
         { _id: planData._id },
         { $set: planData }
       );
       console.log(result);
-      
+
       if (!result) {
         throw new CustomError(
           "Error in edit new plan",

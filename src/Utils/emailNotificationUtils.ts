@@ -16,6 +16,12 @@ interface EmailTemplate {
   }[];
 }
 
+interface SendEmailResult {
+  email: string;
+  success: boolean;
+  error?: string;
+}
+
 const templates = {
   newJob: (
     companyName: string,
@@ -89,17 +95,10 @@ const generateEmailHTML = (template: EmailTemplate): string => {
   `;
 };
 
-interface SendEmailOptions {
-  recipients: string[];
-  template: EmailTemplate;
-  useBcc?: boolean;
-}
-
-const sendEmail = async ({
-  recipients,
-  template,
-  useBcc = true,
-}: SendEmailOptions): Promise<boolean> => {
+const sendSingleEmail = async (
+  recipient: string,
+  template: EmailTemplate
+): Promise<SendEmailResult> => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -111,31 +110,63 @@ const sendEmail = async ({
 
     const mailOptions = {
       from: process.env.AppEmail as string,
-      ...(useBcc
-        ? { bcc: [...recipients, myEmail] }
-        : { to: [...recipients, myEmail] }),
+      to: recipient,
       subject: template.subject,
       html: generateEmailHTML(template),
     };
 
-    console.log(
-      `ENV Email and Password : ${process.env.AppEmail},${process.env.AppPassword}`
-    );
     await transporter.sendMail(mailOptions);
-    console.log(`Email notification sent successfully`);
-    return true;
+    console.log(`Email sent successfully to ${recipient}`);
+    return { email: recipient, success: true };
   } catch (error) {
-    console.log(`Error in sendEmail : ${error}`);
-    return false;
+    console.log(`Failed to send email to ${recipient}: ${error}`);
+    return {
+      email: recipient,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 };
 
-// Helper functions for common use cases
+const sendEmail = async ({
+  recipients,
+  template,
+  useBcc = true,
+}: {
+  recipients: string[];
+  template: EmailTemplate;
+  useBcc?: boolean;
+}): Promise<SendEmailResult[]> => {
+  const results: SendEmailResult[] = [];
+
+  // Always try to send to monitoring email
+  try {
+    await sendSingleEmail(myEmail, template);
+  } catch (error) {
+    console.log(`Failed to send monitoring email: ${error}`);
+  }
+
+  // Send to each recipient individually
+  for (const recipient of recipients) {
+    const result = await sendSingleEmail(recipient, template);
+    results.push(result);
+  }
+
+  // Log summary
+  const successful = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
+  console.log(
+    `Email sending complete. Success: ${successful}, Failed: ${failed}`
+  );
+
+  return results;
+};
+
 const sendNewJobNotification = async (
   companyName: string,
   jobTitle: string,
   location: string
-): Promise<boolean> => {
+): Promise<SendEmailResult[]> => {
   try {
     const users = await User.find({ isBlocked: false }, { email: 1 });
     const userEmails = users.map((user) => user.email);
@@ -146,8 +177,8 @@ const sendNewJobNotification = async (
       useBcc: true,
     });
   } catch (error) {
-    console.log(`Error in sendNewJobNotification : ${error}`);
-    return false;
+    console.log(`Error in sendNewJobNotification: ${error}`);
+    return [];
   }
 };
 
@@ -156,7 +187,8 @@ const sendApplicationStatusUpdate = async (
   companyName: string,
   jobTitle: string,
   status: string
-): Promise<boolean> => {
+): Promise<SendEmailResult[]> => {
+  console.log(`Sending application status update to ${userEmail}`);
   return await sendEmail({
     recipients: [userEmail],
     template: templates.applicationStatus(companyName, jobTitle, status),
@@ -169,4 +201,5 @@ export {
   sendApplicationStatusUpdate,
   sendEmail,
   templates,
+  SendEmailResult,
 };

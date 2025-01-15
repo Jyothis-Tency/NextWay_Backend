@@ -5,6 +5,7 @@ import HttpStatusCode from "../Enums/httpStatusCodes";
 
 class AdminController {
   private adminService: IAdminServices;
+
   constructor(adminService: IAdminServices) {
     this.adminService = adminService;
   }

@@ -37,10 +37,8 @@ class SubscriptionRepository implements ISubscriptionRepository {
     details: ISubscriptionDetails
   ): Promise<ISubscriptionDetails> => {
     try {
-      
       return await this.subscriptionDetails.create(details);
-    } catch (error:any) {
-      
+    } catch (error: any) {
       throw new CustomError(
         "Error creating subscription details",
         HttpStatusCode.INTERNAL_SERVER_ERROR
@@ -76,6 +74,35 @@ class SubscriptionRepository implements ISubscriptionRepository {
     } catch (error) {
       throw new CustomError(
         "Error fetching current subscription by user ID",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  findAllSubscriptions = async (): Promise<ISubscriptionDetails[]> => {
+    try {
+      return await this.subscriptionDetails.find();
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching all subscriptions",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  toggleSubscriptionPlanBlock = async (
+    plan_id: string,
+    isBlocked: boolean
+  ): Promise<boolean> => {
+    try {
+      await this.subscriptionPlan.updateOne(
+        { _id: plan_id },
+        { $set: { isBlocked } }
+      );
+      return true;
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching chat history",
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

@@ -9,7 +9,7 @@ export interface ICompanyRepository {
     company_id: string,
     companyData: Partial<ICompany>
   ): Promise<boolean>;
-  createOrUpdateJobPost(jobPostData: IJobPost): Promise<boolean>;
+  createOrUpdateJobPost(jobPostData: IJobPost): Promise<IJobPost>;
   // getJobsByCompany_Id(company_id: string): Promise<IJobPost[]>;
   getAllJobs(): Promise<IJobPost[]>;
   getJobPostById(_id: string): Promise<IJobPost | null>;

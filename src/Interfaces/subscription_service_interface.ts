@@ -20,6 +20,8 @@ export interface ISubscriptionServices {
     subscriptionId: string
   ): Promise<boolean>;
 
+  getAllSubscriptions(): Promise<ISubscriptionDetails[]>;
+
   webHookService(
     event: string,
     payload: any,
