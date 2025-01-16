@@ -352,7 +352,7 @@ class CompanyServices implements ICompanyServices {
           );
 
           emitNewJobNotification({
-            job_id:result._id as string,
+            job_id: result._id as string,
             title: jobPostData.title,
             company: company.name,
             location: jobPostData.location,
@@ -547,21 +547,44 @@ class CompanyServices implements ICompanyServices {
 
   getJobApplicationById = async (
     applicationId: string
-  ): Promise<IJobApplication | null> => {
+  ): Promise<
+   IJobApplication|null
+
+  > => {
     try {
       const application = await this.companyRepository.getJobApplicationById(
         applicationId
       );
+
       if (!application) {
         throw new CustomError(
           "Application not found",
           HttpStatusCode.NOT_FOUND
         );
       }
-      return application;
-    } catch (error) {
+
+      // Get resume from S3 if it exists
+      let resumeBuffer;
+      let resumeBase64 = "";
+
+      if (application.resume) {
+        resumeBuffer = await this.fileService.getFile(application.resume);
+
+        // Convert to base64 and add appropriate data URI prefix for PDF
+        if (resumeBuffer) {
+          resumeBase64 = `data:application/pdf;base64,${resumeBuffer.toString(
+            "base64"
+          )}`;
+        }
+      }
+      application.resume = resumeBase64;
+      return application
+       
+      ;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job application`,
+        `Error fetching job application: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

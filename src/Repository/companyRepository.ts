@@ -108,7 +108,7 @@ class CompanyRepository implements ICompanyRepository {
 
   getAllJobs = async (): Promise<IJobPost[]> => {
     try {
-      return await this.jobPosts.find();
+      return await this.jobPosts.find().sort({ createdAt: -1 });
     } catch (error) {
       throw new CustomError(
         "Error fetching all jobs",

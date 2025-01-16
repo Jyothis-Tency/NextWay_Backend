@@ -162,7 +162,7 @@ class UserController {
         userData
       );
       if (result) {
-        res.status(HttpStatusCode.OK).json({ status: true });
+        res.status(HttpStatusCode.OK).json(result);
       }
     } catch (error) {
       next(error);

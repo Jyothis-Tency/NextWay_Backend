@@ -23,19 +23,22 @@ class UserRepository implements IUserRepository {
   private jobApplication = Model<IJobApplication>;
   private subscriptionDetails = Model<ISubscriptionDetails>;
   private subscriptionPlan = Model<ISubscriptionPlan>;
+  private jobPost = Model<IJobPost>;
 
   constructor(
     user: Model<IUser>,
     company: Model<ICompany>,
     jobApplication: Model<IJobApplication>,
     subscriptionDetails: Model<ISubscriptionDetails>,
-    subscriptionPlan: Model<ISubscriptionPlan>
+    subscriptionPlan: Model<ISubscriptionPlan>,
+    jobPost: Model<IJobPost>
   ) {
     this.user = user;
     this.company = company;
     this.jobApplication = jobApplication;
     this.subscriptionDetails = subscriptionDetails;
     this.subscriptionPlan = subscriptionPlan;
+    this.jobPost = jobPost;
   }
 
   findByEmail = async (email: string): Promise<IUser | null> => {
@@ -110,13 +113,14 @@ class UserRepository implements IUserRepository {
   putUserById = async (
     user_id: string,
     userData: Partial<IUser>
-  ): Promise<boolean> => {
+  ): Promise<IUser> => {
     try {
-      const updatedUser = await this.user.updateOne(
+      const updatedUser = await this.user.findOneAndUpdate(
         { user_id: user_id },
-        { $set: userData }
+        { $set: userData },
+        { new: true }
       );
-      return updatedUser.modifiedCount > 0;
+      return updatedUser;
     } catch (error) {
       throw new CustomError(
         "Error updating user",
@@ -143,6 +147,10 @@ class UserRepository implements IUserRepository {
   ): Promise<IJobApplication> => {
     try {
       const result = await this.jobApplication.create(applicationData);
+      await this.jobPost.updateOne(
+        { _id: applicationData.job_id },
+        { $push: { applicants: applicationData.user_id } }
+      );
       return result;
     } catch (error) {
       throw new CustomError(
@@ -171,9 +179,11 @@ class UserRepository implements IUserRepository {
     user_id: string
   ): Promise<ISubscriptionDetails[]> => {
     try {
-      const subscriptionHistory = await this.subscriptionDetails.find({
-        user_id: new Types.ObjectId(user_id),
-      }).sort({ createdAt: -1 });
+      const subscriptionHistory = await this.subscriptionDetails
+        .find({
+          user_id: new Types.ObjectId(user_id),
+        })
+        .sort({ createdAt: -1 });
       return subscriptionHistory;
     } catch (error) {
       throw new CustomError(
@@ -266,9 +276,11 @@ class UserRepository implements IUserRepository {
 
   searchByUserName = async (name: string): Promise<IUser[]> => {
     try {
-      const result = await this.user.find({ firstName: { $regex: name, $options: "i" } });
-      console.log(result)
-      return result
+      const result = await this.user.find({
+        firstName: { $regex: name, $options: "i" },
+      });
+      console.log(result);
+      return result;
     } catch (error) {
       throw new CustomError(
         "Error searching for companies",

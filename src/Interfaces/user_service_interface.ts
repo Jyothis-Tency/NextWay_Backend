@@ -30,7 +30,7 @@ export interface IUserServices {
   editUserDetailsService(
     user_id: string,
     userData: Partial<IUser>
-  ): Promise<boolean>;
+  ): Promise<IUser>;
   newJobApplication(
     applicationData: IJobApplication,
     resumeFile: any

@@ -40,5 +40,5 @@ export interface ICompanyServices {
     status: string
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
-  searchCompany(query: string): Promise<ICompany[]>
+  searchCompany(query: string): Promise<ICompany[]>;
 }

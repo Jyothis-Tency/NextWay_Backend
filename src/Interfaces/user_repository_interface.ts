@@ -15,7 +15,7 @@ export interface IUserRepository {
   updatePassword(userId: string, newPassword: string): Promise<IUser | null>;
   getUserById(userId: string): Promise<IUser | null>;
   getAllCompaniesByIds(company_id: string[]): Promise<ICompany[]>;
-  putUserById(user_id: string, userData: Partial<IUser>): Promise<boolean>;
+  putUserById(user_id: string, userData: Partial<IUser>): Promise<IUser>;
   postJobApplication(
     applicationData: IJobApplication
   ): Promise<IJobApplication>;

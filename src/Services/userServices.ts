@@ -24,6 +24,10 @@ import razorpayInstance from "../Config/razorpayConfig";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 import { Server } from "socket.io";
+import {
+  getCompanyRoomName,
+  emitNewApplicationNotification,
+} from "../Config/socketConfig";
 
 class UserServices implements IUserServices {
   private userRepository: IUserRepository;
@@ -78,7 +82,7 @@ class UserServices implements IUserServices {
       if (user.profileImage) {
         imgBuffer = await this.fileService.getFile(user.profileImage);
       }
-      
+
       let imageBase64 = "";
       if (imgBuffer) {
         imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
@@ -94,6 +98,8 @@ class UserServices implements IUserServices {
         phone: user?.phone,
         isBlocked: user?.isBlocked,
         profileImage: imageBase64,
+        location: user?.location,
+        skills: user?.skills,
       };
 
       return { userData, accessToken, refreshToken };
@@ -333,7 +339,7 @@ class UserServices implements IUserServices {
   editUserDetailsService = async (
     user_id: string,
     userData: Partial<IUser>
-  ): Promise<boolean> => {
+  ): Promise<IUser> => {
     try {
       const result = await this.userRepository.putUserById(user_id, userData);
       if (!result) {
@@ -342,7 +348,7 @@ class UserServices implements IUserServices {
           HttpStatusCode.BAD_REQUEST
         );
       }
-      return true;
+      return result;
     } catch (error: any) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
@@ -357,6 +363,7 @@ class UserServices implements IUserServices {
     resumeFile: any
   ): Promise<IJobApplication> => {
     try {
+      console.log("newJobApplication");
       const resumeUrl = await this.fileService.uploadFile(resumeFile);
       if (!resumeUrl) {
         throw new CustomError(
@@ -369,6 +376,10 @@ class UserServices implements IUserServices {
       const result = await this.userRepository.postJobApplication(
         applicationData
       );
+
+      const user = await this.userRepository.getUserById(
+        applicationData.user_id
+      );
       if (!result) {
         throw new CustomError(
           "Failed to save job application",
@@ -376,10 +387,18 @@ class UserServices implements IUserServices {
         );
       }
 
-      this.io.emit("jobApplicationSubmitted", {
-        message: "You have received new job application",
-        applicationData: result,
+      const roomName = getCompanyRoomName(applicationData.company_id);
+      emitNewApplicationNotification(roomName, {
+        applicationId: result.id,
+        jobId: "result.job_id as string",
+        jobTitle: result.jobTitle,
+        applicantName: user?.firstName + " " + user?.lastName,
+        applicantEmail: result.email,
       });
+      // this.io.emit("jobApplicationSubmitted", {
+      //   message: "You have received new job application",
+      //   applicationData: result,
+      // });
 
       return result;
     } catch (error: any) {

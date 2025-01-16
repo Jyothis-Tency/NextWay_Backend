@@ -28,6 +28,7 @@ const jobPostSchema = new Schema<IJobPost>(
       enum: ["open", "closed", "paused"],
       default: "open",
     },
+    applicants: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

@@ -72,6 +72,12 @@ export const initializeSocket = (server: http.Server) => {
       );
     });
 
+    socket.on("join:company", (companyId: string) => {
+      const companyRoom = getCompanyRoomName(companyId);
+      socket.join(companyRoom);
+      console.log(`Socket ${socket.id} joined company room ${companyRoom}`);
+    });
+
     socket.on("disconnect", (reason) => {
       console.log("User disconnected:", reason);
     });
@@ -87,6 +93,10 @@ export const getSubscriptionRoomName = (userId: string): string => {
   return `subscription_${userId}`;
 };
 
+export const getCompanyRoomName = (companyId: string): string => {  
+  return `${companyId}`;
+}
+
 export const emitNewJobNotification = (notification: {
   job_id: string;
   title: string;
@@ -96,6 +106,22 @@ export const emitNewJobNotification = (notification: {
   log("Emitting new job notification:", notification);
   const io = getSocketInstance();
   io.emit("notification:newJob", notification);
+};
+
+export const emitNewApplicationNotification = (
+  roomName: string,
+  notification: {
+    applicationId: string;
+    jobId: string;
+    jobTitle: string;
+    applicantName: string;
+    applicantEmail: string;
+  }
+) => {
+  log("Emitting new application notification:", notification);
+  const io = getSocketInstance();
+
+  io.to(roomName).emit("notification:newApplication", notification);
 };
 
 export const getSocketInstance = () => {

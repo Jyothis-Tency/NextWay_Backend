@@ -18,7 +18,8 @@ const userRepository = new UserRepository(
   Company,
   JobApplication,
   SubscriptionDetails,
-  SubscriptionPlan
+  SubscriptionPlan,
+  JobPost
 );
 const companyRepository = new CompanyRepository(
   Company,
