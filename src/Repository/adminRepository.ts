@@ -123,6 +123,7 @@ class AdminRepository implements IAdminRepository {
     planData: ISubscriptionPlan
   ): Promise<ISubscriptionPlan> => {
     try {
+      console.log("planData in repo",planData);
       const { name, price } = planData;
       const isExisting = await this.subscriptionPlan.findOne({
         $or: [{ name }, { price }],

@@ -127,10 +127,11 @@ class AdminServices implements IAdminServices {
           HttpStatusCode.NOT_FOUND
         );
       }
-
+      console.log("planData", planData);
+      planData.duration = 30
       // Create plan in Razorpay first
       const razorpayPlan = await razorpayInstance.plans.create({
-        period: "monthly",
+        period: planData.period,
         interval: 1,
         item: {
           name: planData.name,
@@ -157,6 +158,7 @@ class AdminServices implements IAdminServices {
         name: planData.name,
         price: planData.price,
         duration: planData.duration,
+        period: planData.period,
         features: planData.features,
         razorpayPlanId: razorpayPlan.id,
       };
@@ -184,6 +186,7 @@ class AdminServices implements IAdminServices {
     planData: ISubscriptionPlan
   ): Promise<boolean> => {
     try {
+      console.log("planData", planData);
       if (!planData) {
         throw new CustomError(
           "Plan Details are missing",
@@ -230,12 +233,12 @@ class AdminServices implements IAdminServices {
         throw new CustomError("Not found the plan", HttpStatusCode.NOT_FOUND);
       }
 
-      if (result.matchedCount === 1 && result.modifiedCount !== 1) {
-        throw new CustomError(
-          "Plan exist with same details",
-          HttpStatusCode.NOT_IMPLEMENTED
-        );
-      }
+      // if (result.matchedCount === 1 && result.modifiedCount !== 1) {
+      //   throw new CustomError(
+      //     "Plan exist with same details",
+      //     HttpStatusCode.NOT_IMPLEMENTED
+      //   );
+      // }
 
       return true;
     } catch (error) {

@@ -109,9 +109,10 @@ export const emitNewJobNotification = (notification: {
 };
 
 export const emitNewApplicationNotification = (
-  roomName: string,
+  
   notification: {
     applicationId: string;
+    companyId: string;
     jobId: string;
     jobTitle: string;
     applicantName: string;
@@ -121,7 +122,7 @@ export const emitNewApplicationNotification = (
   log("Emitting new application notification:", notification);
   const io = getSocketInstance();
 
-  io.to(roomName).emit("notification:newApplication", notification);
+  io.emit("notification:newApplication", notification);
 };
 
 export const getSocketInstance = () => {

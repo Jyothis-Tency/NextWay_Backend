@@ -9,7 +9,9 @@ const SubscriptionDetailsSchema = new Schema<ISubscriptionDetails>({
     required: true,
   },
   planName: { type: String, required: true },
+  period: { type: String, required: true },
   startDate: { type: Date, required: true },
+  
   endDate: { type: Date, required: true },
   price: { type: Number, required: true },
   features: [{ type: String }],

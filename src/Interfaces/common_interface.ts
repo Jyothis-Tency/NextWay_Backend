@@ -4,6 +4,7 @@ export interface ISubscriptionPlan extends Document {
   name: string;
   price: number;
   duration: number;
+  period: "daily" | "weekly" | "monthly" | "yearly";
   features: string[];
   razorpayPlanId: string;
   createdAt: Date;
@@ -141,6 +142,7 @@ export interface ISubscriptionDetails {
   user_id: mongoose.Types.ObjectId; // Reference to the User model
   plan_id: mongoose.Types.ObjectId; // Reference to the SubscriptionPlan model
   planName: string; // Name of the subscription plan
+  period: string; // Duration of the subscription (e.g., monthly, yearly)
   startDate: Date;
   features: string[]; // Start date of the subscription
   endDate: Date; // End date of the subscription

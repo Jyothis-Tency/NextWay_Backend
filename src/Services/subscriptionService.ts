@@ -278,6 +278,7 @@ class SubscriptionServices implements ISubscriptionServices {
         plan_id: planId || "",
         planName: plan.name || "Unknown Plan",
         startDate: new Date(),
+        period: plan.period,
         endDate: new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000),
         price: plan.price,
         features: plan.features,

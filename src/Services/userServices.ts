@@ -387,9 +387,10 @@ class UserServices implements IUserServices {
         );
       }
 
-      const roomName = getCompanyRoomName(applicationData.company_id);
-      emitNewApplicationNotification(roomName, {
+      
+      emitNewApplicationNotification({
         applicationId: result.id,
+        companyId:result.company_id,
         jobId: "result.job_id as string",
         jobTitle: result.jobTitle,
         applicantName: user?.firstName + " " + user?.lastName,
@@ -532,6 +533,7 @@ class UserServices implements IUserServices {
         planName: plan.name,
         startDate,
         endDate,
+        period: plan.period,
         price: plan.price,
         features: plan.features,
         paymentId: razorpayPaymentId,
