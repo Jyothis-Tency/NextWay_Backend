@@ -82,8 +82,11 @@ companyRoutes
     companyAuth,
     companyController.getJobApplicationById
   )
-
-  .get("/search/companies", companyController.searchCompany);
+  .get("/search/companies", companyController.searchCompany)
+  .put(
+    "/set-interview-details/:applicationId",
+    companyController.setInterviewDetails
+  );
 
 // companyRoutes.post("/createPost", companyController.newJobPosted);
 // companyRoutes.post("/createCompany", companyController.newCompanyCreated);

@@ -4,6 +4,7 @@ import { ICompany, IJobApplication } from "../Interfaces/common_interface";
 import { IJobPost } from "../Interfaces/common_interface";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
+import { application } from "express";
 
 class CompanyRepository implements ICompanyRepository {
   private company = Model<ICompany>;
@@ -221,6 +222,24 @@ class CompanyRepository implements ICompanyRepository {
     } catch (error) {
       throw new CustomError(
         "Error searching for companies",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  setInterviewDetails = async (
+    applicationId: string,
+    interview: { interviewStatus: string; dateTime: Date }
+  ): Promise<boolean> => {
+    try {
+      const result = await this.jobApplication.updateOne(
+        { _id: applicationId },
+        { $set: { interview } }
+      );
+      return result.modifiedCount > 0;
+    } catch (error) {
+      throw new CustomError(
+        "Error setting interview details",
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

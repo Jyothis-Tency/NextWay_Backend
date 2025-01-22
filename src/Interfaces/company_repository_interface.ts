@@ -23,6 +23,10 @@ export interface ICompanyRepository {
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
   searchByCompanyName(name: string): Promise<ICompany[]>;
+  setInterviewDetails(
+    applicationId: string,
+    interview: { interviewStatus: string; dateTime: Date }
+  ): Promise<boolean>;
   // getAllJobPost(userId: string): Promise<IJobPost[]>;
   // findByTitle(title: string): Promise<IJobPost | null>;
   // findCompany(name: string): Promise<ICompany | null>;

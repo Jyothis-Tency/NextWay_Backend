@@ -58,6 +58,23 @@ const jobApplication = new Schema<IJobApplication>(
       type: String,
       required: true,
     },
+    interview: {
+      type: {
+        interviewStatus: {
+          type: String,
+          enum: ["scheduled", "over", "canceled", "postponed"],
+          default: "scheduled",
+        },
+        dateTime: {
+          type: Date,
+        },
+        message: {
+          type: String,
+          default: "",
+        },
+      },
+      default: null,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields

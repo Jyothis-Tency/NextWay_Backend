@@ -41,4 +41,8 @@ export interface ICompanyServices {
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
   searchCompany(query: string): Promise<ICompany[]>;
+  setInterviewDetails(
+    applicationId: string,
+    interviewDetails: { interviewStatus: string; dateTime: Date }
+  ): Promise<boolean>;
 }

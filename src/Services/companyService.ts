@@ -503,6 +503,11 @@ class CompanyServices implements ICompanyServices {
         jobPost.title,
         status
       );
+
+      await this.companyRepository.updateApplicationStatus(
+        applicationId,
+        status
+      );
       return true;
     } catch (error) {
       throw new CustomError(
@@ -547,10 +552,7 @@ class CompanyServices implements ICompanyServices {
 
   getJobApplicationById = async (
     applicationId: string
-  ): Promise<
-   IJobApplication|null
-
-  > => {
+  ): Promise<IJobApplication | null> => {
     try {
       const application = await this.companyRepository.getJobApplicationById(
         applicationId
@@ -578,9 +580,7 @@ class CompanyServices implements ICompanyServices {
         }
       }
       application.resume = resumeBase64;
-      return application
-       
-      ;
+      return application;
     } catch (error: any) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
@@ -596,6 +596,30 @@ class CompanyServices implements ICompanyServices {
     } catch (error: any) {
       throw new CustomError(
         `Error searching for companies: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  setInterviewDetails = async (
+    applicationId: string,
+    interviewDetails: { interviewStatus: string; dateTime: Date }
+  ): Promise<boolean> => {
+    try {
+      const result = await this.companyRepository.setInterviewDetails(
+        applicationId,
+        interviewDetails
+      );
+      if (!result) {
+        throw new CustomError(
+          "Failed to set interview details",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+      return true;
+    } catch (error: any) {
+      throw new CustomError(
+        `Error setting interview details: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

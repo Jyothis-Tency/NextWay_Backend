@@ -357,6 +357,28 @@ class CompanyController {
       next(error);
     }
   };
+
+  setInterviewDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { applicationId } = req.params;
+      const { interviewStatus, dateTime } = req.body;
+      const interviewDetails = { interviewStatus, dateTime };
+      await this.companyService.setInterviewDetails(
+        applicationId,
+        interviewDetails
+      );
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        message: "Interview details updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default CompanyController;

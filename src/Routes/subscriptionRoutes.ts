@@ -10,6 +10,7 @@ import SubscriptionController from "../Controllers/subscriptionController";
 import User from "../Models/userModel";
 import Company from "../Models/companyModel";
 import JobApplication from "../Models/jobApplicationModel";
+import JobPost from "../Models/jobPostModel";
 import { getSocketInstance } from "../Config/socketConfig";
 
 const subscriptionRepository = new SubscriptionRepository(
@@ -21,7 +22,8 @@ const userRepository = new UserRepository(
   Company,
   JobApplication,
   SubscriptionDetails,
-  SubscriptionPlan
+  SubscriptionPlan,
+  JobPost
 );
 const subscriptionServices = new SubscriptionServices(
   subscriptionRepository,
