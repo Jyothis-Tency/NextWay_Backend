@@ -365,8 +365,8 @@ class CompanyController {
   ): Promise<void> => {
     try {
       const { applicationId } = req.params;
-      const { interviewStatus, dateTime } = req.body;
-      const interviewDetails = { interviewStatus, dateTime };
+      const { interviewStatus, dateTime, message } = req.body;
+      const interviewDetails = { interviewStatus, dateTime, message };
       await this.companyService.setInterviewDetails(
         applicationId,
         interviewDetails

@@ -78,6 +78,27 @@ export const initializeSocket = (server: http.Server) => {
       console.log(`Socket ${socket.id} joined company room ${companyRoom}`);
     });
 
+    socket.on("start-interview", (interviewData) => {
+      const { roomID, applicationId, user_id } = interviewData;
+
+      // Create a unique room for this interview
+      const interviewRoomName = `interview_${applicationId}`;
+
+      // Broadcast to the specific user's room
+      const userRoom = `user_${user_id}`;
+
+      // Emit the interview start event to the user
+      io.to(userRoom).emit("interview:started", {
+        roomID,
+        applicationId,
+        message: "Interview is ready to start",
+      });
+
+      console.log(
+        `Interview started for application ${applicationId} in room ${roomID}`
+      );
+    });
+
     socket.on("disconnect", (reason) => {
       console.log("User disconnected:", reason);
     });
@@ -93,9 +114,9 @@ export const getSubscriptionRoomName = (userId: string): string => {
   return `subscription_${userId}`;
 };
 
-export const getCompanyRoomName = (companyId: string): string => {  
+export const getCompanyRoomName = (companyId: string): string => {
   return `${companyId}`;
-}
+};
 
 export const emitNewJobNotification = (notification: {
   job_id: string;
@@ -108,17 +129,14 @@ export const emitNewJobNotification = (notification: {
   io.emit("notification:newJob", notification);
 };
 
-export const emitNewApplicationNotification = (
-  
-  notification: {
-    applicationId: string;
-    companyId: string;
-    jobId: string;
-    jobTitle: string;
-    applicantName: string;
-    applicantEmail: string;
-  }
-) => {
+export const emitNewApplicationNotification = (notification: {
+  applicationId: string;
+  companyId: string;
+  jobId: string;
+  jobTitle: string;
+  applicantName: string;
+  applicantEmail: string;
+}) => {
   log("Emitting new application notification:", notification);
   const io = getSocketInstance();
 
@@ -130,4 +148,17 @@ export const getSocketInstance = () => {
     throw new Error("Socket.IO not initialized. Call initializeSocket first.");
   }
   return io;
+};
+
+export const emitVideoCallInvitation = (notification: {
+  applicationId: string;
+  userId: string;
+  companyId: string;
+  roomId: string;
+}) => {
+  log("Emitting video call invitation:", notification);
+  const io = getSocketInstance();
+
+  const userRoom = getSubscriptionRoomName(notification.userId);
+  io.to(userRoom).emit("notification:videoCallInvite", notification);
 };
