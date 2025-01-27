@@ -79,6 +79,7 @@ export const initializeSocket = (server: http.Server) => {
     });
 
     socket.on("start-interview", (interviewData) => {
+      console.log("Interview started in socketConfig:", interviewData);
       const { roomID, applicationId, user_id } = interviewData;
 
       // Create a unique room for this interview
@@ -97,6 +98,30 @@ export const initializeSocket = (server: http.Server) => {
       console.log(
         `Interview started for application ${applicationId} in room ${roomID}`
       );
+    });
+
+    socket.on("user:leave", (data) => {
+      console.log("User left event received:", data);
+      const { roomID, userId } = data;
+      // Notify company that user has left
+      const userRoom = `user_${userId}`;
+      io.to(userRoom).emit("user:left", {
+        roomID,
+        userId,
+      });
+    });
+
+    socket.on("end-interview", (interviewData) => {
+      console.log("Interview ended in socketConfig:", interviewData);
+      const { roomID, applicationId, user_id } = interviewData;
+      const userRoom = `user_${user_id}`;
+      io.to(userRoom).emit("interview:end", roomID);
+      // Broadcast to the specific user's room
+
+      // Emit the interview end event to the user
+      io.to(userRoom).emit("interview:ended");
+
+      console.log(`Interview ended for application ${applicationId}`);
     });
 
     socket.on("disconnect", (reason) => {
