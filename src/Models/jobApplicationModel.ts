@@ -62,7 +62,7 @@ const jobApplication = new Schema<IJobApplication>(
       type: {
         interviewStatus: {
           type: String,
-          enum: ["scheduled", "over", "canceled", "postponed"],
+          enum: ["scheduled", "conducted", "canceled", "postponed"],
           default: "scheduled",
         },
         dateTime: {

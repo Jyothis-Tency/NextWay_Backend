@@ -1,11 +1,21 @@
 import { Server } from "socket.io";
 import http from "http";
+import CompanyServices from "../Services/companyService";
+import CompanyRepository from "../Repository/companyRepository";
 import ChatServices from "../Services/chatServices";
 import ChatRepository from "../Repository/chatRepository";
 import ChatModel from "../Models/chatModel";
 import UserModel from "../Models/userModel";
 import CompanyModel from "../Models/companyModel";
+import JobApplicationModel from "../Models/jobApplicationModel";
+import JobPost from "../Models/jobPostModel";
 import { log } from "console";
+const companyRepository = new CompanyRepository(
+  CompanyModel,
+  JobPost,
+  JobApplicationModel
+);
+const companyService = new CompanyServices(companyRepository);
 const chatRepository = new ChatRepository(ChatModel, UserModel, CompanyModel);
 const chatService = new ChatServices(chatRepository);
 
@@ -80,7 +90,7 @@ export const initializeSocket = (server: http.Server) => {
 
     socket.on("start-interview", (interviewData) => {
       console.log("Interview started in socketConfig:", interviewData);
-      const { roomID, applicationId, user_id } = interviewData;
+      const { roomID, applicationId, user_id ,companyName} = interviewData;
 
       // Create a unique room for this interview
       const interviewRoomName = `interview_${applicationId}`;
@@ -92,7 +102,9 @@ export const initializeSocket = (server: http.Server) => {
       io.to(userRoom).emit("interview:started", {
         roomID,
         applicationId,
+        companyName,
         message: "Interview is ready to start",
+
       });
 
       console.log(
@@ -111,13 +123,18 @@ export const initializeSocket = (server: http.Server) => {
       });
     });
 
-    socket.on("end-interview", (interviewData) => {
+    socket.on("end-interview", async (interviewData) => {
       console.log("Interview ended in socketConfig:", interviewData);
-      const { roomID, applicationId, user_id } = interviewData;
+      const { roomID, applicationId, user_id,startTime } = interviewData;
       const userRoom = `user_${user_id}`;
+
       io.to(userRoom).emit("interview:end", roomID);
       // Broadcast to the specific user's room
-
+      await companyService.setInterviewDetails(applicationId, {
+        interviewStatus: "conducted",
+        dateTime: startTime,
+        message: "Interview conducted successfully",
+      });
       // Emit the interview end event to the user
       io.to(userRoom).emit("interview:ended");
 

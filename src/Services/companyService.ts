@@ -603,7 +603,11 @@ class CompanyServices implements ICompanyServices {
 
   setInterviewDetails = async (
     applicationId: string,
-    interviewDetails: { interviewStatus: string; dateTime: Date }
+    interviewDetails: {
+      interviewStatus: string;
+      dateTime: Date;
+      message: string;
+    }
   ): Promise<boolean> => {
     try {
       const result = await this.companyRepository.setInterviewDetails(

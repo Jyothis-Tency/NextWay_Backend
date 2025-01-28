@@ -229,7 +229,7 @@ class CompanyRepository implements ICompanyRepository {
 
   setInterviewDetails = async (
     applicationId: string,
-    interview: { interviewStatus: string; dateTime: Date }
+    interview: { interviewStatus: string; dateTime: Date; message: string }
   ): Promise<boolean> => {
     try {
       const result = await this.jobApplication.updateOne(
