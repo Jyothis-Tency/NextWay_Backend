@@ -117,7 +117,6 @@ export interface IJobPost extends Document {
   company_id: string; // Reference to Company
   applicants?: mongoose.Types.ObjectId[]; // References JobApplication IDs
   status?: "open" | "closed" | "paused";
-  
 }
 
 export interface IJobApplication extends Document {
@@ -159,6 +158,18 @@ export interface ISubscriptionDetails {
   createdAt?: Date; // Timestamp when the subscription record was created
 }
 
+export interface ISubscriptionHistory {
+  user_id: mongoose.Types.ObjectId; // Reference to the User
+  plan_id: mongoose.Types.ObjectId; // Reference to the Subscription Plan
+  planName: string; // Redundant storage for ease of querying
+  period: "daily" | "weekly" | "monthly" | "yearly";
+  createdType: string;
+  startDate: Date;
+  endDate: Date;
+  price: number;
+  createdAt: Date;
+}
+
 // export interface ISubscriptionHistory extends Document {
 //   user_id: mongoose.Types.ObjectId; // Reference to the User
 //   plan_id: mongoose.Types.ObjectId; // Reference to the Subscription Plan
@@ -172,7 +183,7 @@ export interface ISubscriptionDetails {
 
 export interface IOrderResponse {
   orderId: string;
-  amount: string|number;
+  amount: string | number;
   currency: string;
 }
 

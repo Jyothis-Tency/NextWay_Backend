@@ -3,6 +3,7 @@ import express, { Router } from "express";
 import SubscriptionPlan from "../Models/subscriptionPlanModel";
 import SubscriptionDetails from "../Models/subscriptionDetails";
 
+
 import SubscriptionRepository from "../Repository/subscriptionRepository";
 import UserRepository from "../Repository/userRepository";
 import SubscriptionServices from "../Services/subscriptionService";
@@ -12,10 +13,12 @@ import Company from "../Models/companyModel";
 import JobApplication from "../Models/jobApplicationModel";
 import JobPost from "../Models/jobPostModel";
 import { getSocketInstance } from "../Config/socketConfig";
+import SubscriptionHistory from "../Models/SubscriptionHistory";
 
 const subscriptionRepository = new SubscriptionRepository(
   SubscriptionPlan,
-  SubscriptionDetails
+  SubscriptionDetails,
+  SubscriptionHistory
 );
 const userRepository = new UserRepository(
   User,

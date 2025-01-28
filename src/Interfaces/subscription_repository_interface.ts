@@ -1,5 +1,5 @@
 import { UpdateResult } from "mongodb";
-import { ISubscriptionDetails, ISubscriptionPlan } from "./common_interface";
+import { ISubscriptionDetails, ISubscriptionPlan,ISubscriptionHistory } from "./common_interface";
 
 export interface ISubscriptionRepository {
   findSubscriptionPlanById(planId: string): Promise<ISubscriptionPlan | null>;
@@ -10,6 +10,9 @@ export interface ISubscriptionRepository {
     matchCriteria: Record<string, any>,
     updateValues: Record<string, any>
   ): Promise<UpdateResult>;
+  createSubscriptionHistory(
+      details: ISubscriptionHistory
+    ): Promise<ISubscriptionHistory>
   findSubscription(
     subscriptionId: string
   ): Promise<ISubscriptionDetails | null>;

@@ -10,6 +10,7 @@ import { ISubscriptionServices } from "../Interfaces/subscription_service_interf
 import CustomError from "../Utils/customError";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import SubscriptionPeriods from "../Enums/SubscriptionPeriods";
 
 import { getSubscriptionRoomName } from "../Config/socketConfig";
 import { Server } from "socket.io";
@@ -272,6 +273,15 @@ class SubscriptionServices implements ISubscriptionServices {
       throw new CustomError("Plan not found", HttpStatusCode.NOT_FOUND);
     }
 
+    const durationInDays =
+      SubscriptionPeriods[plan.period as keyof typeof SubscriptionPeriods];
+
+    if (!durationInDays) {
+      throw new Error(`Invalid subscription period: ${plan.period}`);
+    }
+
+    const endDate = new Date(Date.now() + durationInDays * 24 * 60 * 60 * 1000);
+
     const newSubscription =
       await this.subscriptionRepository.createSubscriptionDetails({
         user_id: userId,
@@ -279,7 +289,7 @@ class SubscriptionServices implements ISubscriptionServices {
         planName: plan.name || "Unknown Plan",
         startDate: new Date(),
         period: plan.period,
-        endDate: new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000),
+        endDate: endDate,
         price: plan.price,
         features: plan.features,
         paymentId: order.id,
@@ -287,6 +297,18 @@ class SubscriptionServices implements ISubscriptionServices {
         isCurrent: true,
         subscriptionId: order.id,
       });
+    
+    await this.subscriptionRepository.createSubscriptionHistory({
+      user_id: userId,
+      plan_id: planId,
+      planName: plan.name,
+      createdType: "new",
+      period: plan.period,
+      startDate: new Date(),
+      endDate: endDate,
+      price: plan.price,
+      createdAt: new Date(),
+    });
 
     const roomName = getSubscriptionRoomName(userId);
     this.io.to(roomName).emit("subscription:updated", {
@@ -347,15 +369,19 @@ class SubscriptionServices implements ISubscriptionServices {
         );
       }
 
+      const durationInDays =
+        SubscriptionPeriods[plan.period as keyof typeof SubscriptionPeriods];
+
+      if (!durationInDays) {
+        throw new Error(`Invalid subscription period: ${plan.period}`);
+      }
+
       const newEndDate = new Date(
         subscriptionDetails.endDate.getTime() +
-          plan.duration * 24 * 60 * 60 * 1000
+          durationInDays * 24 * 60 * 60 * 1000
       );
 
-      subscriptionDetails.endDate = new Date(
-        subscriptionDetails.endDate.getTime() +
-          plan.duration * 24 * 60 * 60 * 1000
-      );
+      subscriptionDetails.endDate = newEndDate;
       subscriptionDetails.paymentId = subscription.payment_id; // Update with new payment ID
       await this.subscriptionRepository.updateSubscriptionStatus(
         { subscriptionId: subscriptionDetails.subscriptionId },
@@ -364,6 +390,18 @@ class SubscriptionServices implements ISubscriptionServices {
           paymentId: subscription.payment_id,
         }
       );
+
+      await this.subscriptionRepository.createSubscriptionHistory({
+        user_id: subscriptionDetails.user_id,
+        plan_id: subscriptionDetails.plan_id,
+        planName: subscriptionDetails.planName,
+        createdType: "renewal",
+        period: plan.period,
+        startDate: subscriptionDetails.endDate,
+        endDate: newEndDate,
+        price: plan.price,
+        createdAt: new Date(),
+      });
 
       if (subscription.notes && subscription.notes.userId) {
         const roomName = getSubscriptionRoomName(subscription.notes.userId);

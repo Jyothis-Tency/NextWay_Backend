@@ -3,6 +3,7 @@ import { ISubscriptionRepository } from "../Interfaces/subscription_repository_i
 import {
   ISubscriptionDetails,
   ISubscriptionPlan,
+  ISubscriptionHistory,
 } from "../Interfaces/common_interface";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
@@ -11,13 +12,16 @@ import { UpdateResult } from "mongodb";
 class SubscriptionRepository implements ISubscriptionRepository {
   private subscriptionPlan: Model<ISubscriptionPlan>;
   private subscriptionDetails: Model<ISubscriptionDetails>;
+  private subscriptionHistory: Model<ISubscriptionHistory>;
 
   constructor(
     subscriptionPlan: Model<ISubscriptionPlan>,
-    subscriptionDetails: Model<ISubscriptionDetails>
+    subscriptionDetails: Model<ISubscriptionDetails>,
+    subscriptionHistory: Model<ISubscriptionHistory>
   ) {
     this.subscriptionPlan = subscriptionPlan;
     this.subscriptionDetails = subscriptionDetails;
+    this.subscriptionHistory = subscriptionHistory;
   }
 
   findSubscriptionPlanById = async (
@@ -59,6 +63,29 @@ class SubscriptionRepository implements ISubscriptionRepository {
     } catch (error) {
       throw new CustomError(
         "Error updating subscription status",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  createSubscriptionHistory = async (
+    details: ISubscriptionHistory
+  ): Promise<ISubscriptionHistory> => {
+    try {
+      const historyDetails = {
+        user_id: details.user_id,
+        plan_id: details.plan_id,
+        planName: details.planName,
+        createdType: details.createdType,
+        period: details.period,
+        startDate: details.startDate,
+        endDate: details.endDate,
+        price: details.price,
+      };
+      return await this.subscriptionHistory.create(historyDetails);
+    } catch (error) {
+      throw new CustomError(
+        "Error creating subscription history",
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

@@ -1,10 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 import {
-  ISubscriptionDetails,
 
+  ISubscriptionHistory,
 } from "../Interfaces/common_interface";
-
-const SubscriptionDetailsSchema = new Schema<ISubscriptionDetails>({
+const SubscriptionHistorySchema = new Schema<ISubscriptionHistory>({
   user_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
   plan_id: {
     type: Schema.Types.ObjectId,
@@ -12,27 +11,17 @@ const SubscriptionDetailsSchema = new Schema<ISubscriptionDetails>({
     required: true,
   },
   planName: { type: String, required: true },
+  createdType: { type: String, enum: ["new", "renewed"], default: "new" },
   period: { type: String, required: true },
   startDate: { type: Date, required: true },
-
   endDate: { type: Date, required: true },
   price: { type: Number, required: true },
-  features: [{ type: String }],
-  paymentId: { type: String, required: true },
-  status: {
-    type: String,
-    required: true,
-  },
-  subscriptionId: { type: String, required: true },
-  isCurrent: { type: Boolean, default: false }, // Indicates if this is the user's current subscription
   createdAt: { type: Date, default: Date.now },
 });
 
-
-
-const SubscriptionDetails = mongoose.model<ISubscriptionDetails>(
-  "SubscriptionDetails",
-  SubscriptionDetailsSchema
+const SubscriptionHistory = mongoose.model<ISubscriptionHistory>(
+  "SubscriptionHistory",
+  SubscriptionHistorySchema
 );
 
-export default SubscriptionDetails;
+export default SubscriptionHistory;

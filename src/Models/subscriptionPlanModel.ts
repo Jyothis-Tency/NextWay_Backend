@@ -6,6 +6,7 @@ const SubscriptionPlanSchema = new Schema<ISubscriptionPlan>({
   price: { type: Number, required: true },
   period: {
     type: String,
+    
     enum: ["daily", "weekly", "monthly", "yearly"],
     required: true,
   },
