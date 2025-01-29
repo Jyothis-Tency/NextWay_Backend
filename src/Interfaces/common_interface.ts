@@ -134,6 +134,7 @@ export interface IJobApplication extends Document {
   resume: string; // URL to the resume file
   coverLetter?: string; // Optional cover letter text
   status: "Pending" | "Viewed" | "Shortlisted" | "Rejected" | "Hired";
+  statusMessage?: string;
   interview?: {
     interviewStatus: "scheduled" | "over" | "canceled" | "postponed";
     dateTime?: Date;

@@ -241,6 +241,18 @@ class UserRepository implements IUserRepository {
       );
     }
   };
+
+  getAllUserImages = async (): Promise<String[]> => {
+    try {
+      const result = await this.user.find({}).select("profileImage");
+      return result.map((user) => user.profileImage);
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching user images",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default UserRepository;

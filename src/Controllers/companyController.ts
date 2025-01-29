@@ -311,8 +311,8 @@ class CompanyController {
   ): Promise<void> => {
     try {
       const { applicationId } = req.params;
-      const { status } = req.body;
-      await this.companyService.updateApplicationStatus(applicationId, status);
+      const { status, statusMessage } = req.body;
+      await this.companyService.updateApplicationStatus(applicationId, status,statusMessage);
       res.status(HttpStatusCode.OK).json({
         status: true,
         message: "Application status updated successfully",
@@ -375,6 +375,20 @@ class CompanyController {
         status: true,
         message: "Interview details updated successfully",
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  
+  getAllCompanyProfileImages = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const companyImages = await this.companyService.getAllCompanyProfileImages();
+      res.status(HttpStatusCode.OK).json(companyImages);
     } catch (error) {
       next(error);
     }

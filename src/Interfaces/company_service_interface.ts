@@ -37,7 +37,8 @@ export interface ICompanyServices {
   getJobApplicationsByJobId(jobId: string): Promise<IJobApplication[]>;
   updateApplicationStatus(
     applicationId: string,
-    status: string
+    status: string,
+    statusMessage: string
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
   searchCompany(query: string): Promise<ICompany[]>;
@@ -45,4 +46,10 @@ export interface ICompanyServices {
     applicationId: string,
     interviewDetails: { interviewStatus: string; dateTime: Date }
   ): Promise<boolean>;
+  getAllCompanyProfileImages(): Promise<
+    {
+      company_id: string;
+      profileImage: string;
+    }[]
+  >;
 }

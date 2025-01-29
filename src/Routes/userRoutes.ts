@@ -13,6 +13,7 @@ import { upload } from "../Config/multerConfig";
 import SubscriptionDetails from "../Models/subscriptionDetails";
 import SubscriptionPlan from "../Models/subscriptionPlanModel";
 import { getSocketInstance } from "../Config/socketConfig";
+import AdminRepository from "../Repository/adminRepository";
 
 const userRepository = new UserRepository(
   User,
@@ -29,9 +30,12 @@ const companyRepository = new CompanyRepository(
   JobApplication
 );
 
+const adminRepository = new AdminRepository(Company, User, SubscriptionPlan);
+
 const userService = new UserServices(
   userRepository,
   companyRepository,
+  adminRepository,
   getSocketInstance()
 );
 const userController = new UserController(userService);
@@ -75,6 +79,7 @@ userRoutes
     userAuth,
     userController.getJobApplicationsByUserId
   )
-  .get("/search/users", userController.searchUser);
+  .get("/search/users", userController.searchUser)
+  .get("/getAllUserProfileImages", userController.getAllUserProfileImages);
 
 export default userRoutes;

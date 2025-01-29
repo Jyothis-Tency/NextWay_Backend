@@ -8,6 +8,7 @@ import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { ICompanyRepository } from "../Interfaces/company_repository_interface";
 import { ICompanyServices } from "../Interfaces/company_service_interface";
+import { IAdminRepository } from "../Interfaces/admin_repository_interface";
 import redisClient from "../Utils/redisUtils";
 import otpSender from "../Utils/otpUtils";
 import { createToken, createRefreshToken } from "../Config/jwtConfig";
@@ -28,11 +29,16 @@ import {
 
 class CompanyServices implements ICompanyServices {
   private companyRepository: ICompanyRepository;
+  private adminRepository: IAdminRepository;
   private companyData: ICompany | null = null;
   private fileService: FileService;
 
-  constructor(companyRepository: ICompanyRepository) {
+  constructor(
+    companyRepository: ICompanyRepository,
+    adminRepository: IAdminRepository
+  ) {
     this.companyRepository = companyRepository;
+    this.adminRepository = adminRepository;
     this.fileService = new FileService();
   }
 
@@ -471,7 +477,8 @@ class CompanyServices implements ICompanyServices {
 
   updateApplicationStatus = async (
     applicationId: string,
-    status: string
+    status: string,
+    statusMessage: string
   ): Promise<boolean> => {
     try {
       const jobApplication = await this.companyRepository.getJobApplicationById(
@@ -518,7 +525,8 @@ class CompanyServices implements ICompanyServices {
 
       await this.companyRepository.updateApplicationStatus(
         applicationId,
-        status
+        status,
+        statusMessage
       );
       return true;
     } catch (error) {
@@ -636,6 +644,44 @@ class CompanyServices implements ICompanyServices {
     } catch (error: any) {
       throw new CustomError(
         `Error setting interview details: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getAllCompanyProfileImages = async (): Promise<
+    {
+      company_id: string;
+      profileImage: string;
+    }[]
+  > => {
+    try {
+      const allCompanies = await this.adminRepository.getAllCompanies();
+      if (!allCompanies) {
+        return [];
+      }
+
+      // Use Promise.all to handle multiple async operations
+      const companyImagesWithId = await Promise.all(
+        allCompanies
+          .filter((company) => company.profileImage) // Filter companies with profile images
+          .map(async (company) => {
+            const imageURL = await this.fileService.getFile(
+              company.profileImage as string
+            );
+            return {
+              company_id: company.company_id.toString(),
+              profileImage: `data:image/jpeg;base64,${imageURL.toString(
+                "base64"
+              )}`,
+            };
+          })
+      );
+
+      return companyImagesWithId;
+    } catch (error: any) {
+      throw new CustomError(
+        `Error fetching company profile images: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

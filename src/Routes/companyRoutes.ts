@@ -7,13 +7,17 @@ import JobPost from "../Models/jobPostModel";
 import companyAuth from "../Config/companyAuth";
 import JobApplication from "../Models/jobApplicationModel";
 import { upload } from "../Config/multerConfig";
+import AdminRepository from "../Repository/adminRepository";
+import User from "../Models/userModel";
+import SubscriptionPlan from "../Models/subscriptionPlanModel";
 
 const companyRepository = new CompanyRepository(
   Company,
   JobPost,
   JobApplication
 );
-const companyService = new CompanyServices(companyRepository);
+const adminRepository = new AdminRepository(Company, User, SubscriptionPlan);
+const companyService = new CompanyServices(companyRepository, adminRepository);
 const companyController = new CompanyController(companyService);
 
 const companyRoutes = Router();
@@ -86,6 +90,10 @@ companyRoutes
   .put(
     "/set-interview-details/:applicationId",
     companyController.setInterviewDetails
+  )
+  .get(
+    "/getAllCompanyProfileImages",
+    companyController.getAllCompanyProfileImages
   );
 
 // companyRoutes.post("/createPost", companyController.newJobPosted);

@@ -50,6 +50,10 @@ const jobApplication = new Schema<IJobApplication>(
       enum: ["Pending", "Shortlisted", "Rejected", "Hired"],
       default: "Pending",
     },
+    statusMessage: {
+      type: String,
+      default: "",
+    },
     companyName: {
       type: String,
       required: true,

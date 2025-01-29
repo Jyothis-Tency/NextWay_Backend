@@ -1,3 +1,4 @@
+import { stat } from "fs";
 import { ICompany, IJobPost, IJobApplication } from "./common_interface";
 
 export interface ICompanyRepository {
@@ -19,7 +20,8 @@ export interface ICompanyRepository {
   jobApplicationsByJobId(jobId: string): Promise<IJobApplication[]>;
   updateApplicationStatus(
     applicationId: string,
-    status: string
+    status: string,
+    statusMessage: string
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
   searchByCompanyName(name: string): Promise<ICompany[]>;

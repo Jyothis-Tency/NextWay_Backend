@@ -208,7 +208,6 @@ class UserController {
     }
   };
 
-
   getSubscriptionHistory = async (
     req: Request,
     res: Response,
@@ -264,6 +263,19 @@ class UserController {
       const { query } = req.query;
       const users = await this.userService.searchUser(query as string);
       res.status(HttpStatusCode.OK).json(users);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllUserProfileImages = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const userImages = await this.userService.getAllUserProfileImages();
+      res.status(HttpStatusCode.OK).json(userImages);
     } catch (error) {
       next(error);
     }

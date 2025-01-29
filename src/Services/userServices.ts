@@ -12,6 +12,7 @@ import {
 } from "../Interfaces/common_interface";
 import { IUserRepository } from "../Interfaces/user_repository_interface";
 import { ICompanyRepository } from "../Interfaces/company_repository_interface";
+import { IAdminRepository } from "../Interfaces/admin_repository_interface";
 import { IUserServices } from "../Interfaces/user_service_interface";
 import redisClient from "../Utils/redisUtils";
 import otpSender from "../Utils/otpUtils";
@@ -32,6 +33,7 @@ import {
 class UserServices implements IUserServices {
   private userRepository: IUserRepository;
   private companyRepository: ICompanyRepository;
+  private adminRepository: IAdminRepository;
   private userData: IUser | null = null;
   private jobPosts: IJobPost | null = null;
   private OTP: string | null = null;
@@ -42,10 +44,12 @@ class UserServices implements IUserServices {
   constructor(
     userRepository: IUserRepository,
     companyRepository: ICompanyRepository,
+    adminRepository: IAdminRepository,
     io: Server
   ) {
     this.userRepository = userRepository;
     this.companyRepository = companyRepository;
+    this.adminRepository = adminRepository;
     this.fileService = new FileService();
     this.io = io;
   }
@@ -387,10 +391,9 @@ class UserServices implements IUserServices {
         );
       }
 
-      
       emitNewApplicationNotification({
         applicationId: result.id,
-        companyId:result.company_id,
+        companyId: result.company_id,
         jobId: "result.job_id as string",
         jobTitle: result.jobTitle,
         applicantName: user?.firstName + " " + user?.lastName,
@@ -440,8 +443,6 @@ class UserServices implements IUserServices {
       );
     }
   };
-
-
 
   getSubscriptionHistory = async (
     user_id: string
@@ -517,6 +518,44 @@ class UserServices implements IUserServices {
     } catch (error: any) {
       throw new CustomError(
         `Error searching for companies: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getAllUserProfileImages = async (): Promise<
+    {
+      user_id: string;
+      profileImage: string;
+    }[]
+  > => {
+    try {
+      const allUsers = await this.adminRepository.getAllUsers();
+      if (!allUsers) {
+        return [];
+      }
+
+      // Use Promise.all to handle multiple async operations
+      const userImagesWithId = await Promise.all(
+        allUsers
+          .filter((user) => user.profileImage) // Filter users with profile images
+          .map(async (user) => {
+            const imageURL = await this.fileService.getFile(
+              user.profileImage as string
+            );
+            return {
+              user_id: user.user_id.toString(),
+              profileImage: `data:image/jpeg;base64,${imageURL.toString(
+                "base64"
+              )}`,
+            };
+          })
+      );
+
+      return userImagesWithId;
+    } catch (error: any) {
+      throw new CustomError(
+        `Error fetching user profile images: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

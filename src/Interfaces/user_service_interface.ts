@@ -41,8 +41,12 @@ export interface IUserServices {
   getCurrentSubscriptionDetail(
     user_id: string
   ): Promise<ISubscriptionDetails | null>;
-  getJobApplicationsByUserId(
-    user_id: string
-  ): Promise<IJobApplication[]>
-  searchUser(query: string): Promise<IUser[]>
+  getJobApplicationsByUserId(user_id: string): Promise<IJobApplication[]>;
+  searchUser(query: string): Promise<IUser[]>;
+  getAllUserProfileImages(): Promise<
+    {
+      user_id: string;
+      profileImage: string;
+    }[]
+  >;
 }
