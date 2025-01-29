@@ -65,8 +65,6 @@ userRoutes
     upload.single("profilePicture"),
     userController.updateProfileImgController
   )
-  .post("/razorpay/create-order", userAuth, userController.createOrder)
-  .post("/subscribe/verify-payment", userAuth, userController.verifyPayment)
   .get(`/subscription-history/:userId`, userController.getSubscriptionHistory)
   .get(
     `/current-subscription/:userId`,

@@ -21,11 +21,6 @@ export interface IUserRepository {
   ): Promise<IJobApplication>;
   postProfileImg(user_id: string, url: string): Promise<boolean>;
   getSubscriptionHistory(user_id: string): Promise<ISubscriptionDetails[]>;
-  getSubscriptionPlanById(plan_id: string): Promise<ISubscriptionPlan | null>;
-  deactivateUserSubscriptions(user_id: string): Promise<UpdateResult>;
-  createSubscription(
-    subscriptionDetails: ISubscriptionDetails
-  ): Promise<ISubscriptionDetails>;
   getCurrentSubscriptionDetails(
     user_id: string
   ): Promise<ISubscriptionDetails | null>;

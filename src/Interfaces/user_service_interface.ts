@@ -36,14 +36,7 @@ export interface IUserServices {
     resumeFile: any
   ): Promise<IJobApplication>;
   updateProfileImg(user_id: string, image: any): Promise<boolean>;
-  createOrder(planId: string, userId: string): Promise<RazorpayOrder>;
-  verifyPayment(
-    razorpayOrderId: string,
-    razorpayPaymentId: string,
-    razorpaySignature: string,
-    userId: string,
-    planId: string
-  ): Promise<ISubscriptionDetails>;
+
   getSubscriptionHistory(user_id: string): Promise<ISubscriptionDetails[]>;
   getCurrentSubscriptionDetail(
     user_id: string

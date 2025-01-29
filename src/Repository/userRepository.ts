@@ -7,7 +7,7 @@ import {
   IJobApplication,
   ISubscriptionDetails,
   ISubscriptionPlan,
-  ISubscriptionHistory
+  ISubscriptionHistory,
 } from "../Interfaces/common_interface";
 import { ObjectId } from "mongodb";
 import { Types } from "mongoose";
@@ -192,57 +192,6 @@ class UserRepository implements IUserRepository {
     } catch (error) {
       throw new CustomError(
         "Error fetching subscription history",
-        HttpStatusCode.INTERNAL_SERVER_ERROR
-      );
-    }
-  };
-
-  getSubscriptionPlanById = async (
-    plan_id: string
-  ): Promise<ISubscriptionPlan | null> => {
-    try {
-      const subscriptionPlan = await this.subscriptionPlan.findOne({
-        _id: plan_id,
-      });
-      return subscriptionPlan;
-    } catch (error) {
-      throw new CustomError(
-        "Error fetching subscription plan",
-        HttpStatusCode.INTERNAL_SERVER_ERROR
-      );
-    }
-  };
-
-  deactivateUserSubscriptions = async (
-    user_id: string
-  ): Promise<UpdateResult> => {
-    try {
-      const result = await this.subscriptionDetails.updateMany(
-        { user_id: new Types.ObjectId(user_id) },
-        { $set: { isCurrent: false } }
-      );
-      return result;
-    } catch (error) {
-      throw new CustomError(
-        "Error deactivating subscriptions",
-        HttpStatusCode.INTERNAL_SERVER_ERROR
-      );
-    }
-  };
-
-  createSubscription = async (
-    subscriptionDetails: ISubscriptionDetails
-  ): Promise<ISubscriptionDetails> => {
-    try {
-      const result = await this.subscriptionDetails.create(subscriptionDetails);
-      await this.user.updateOne(
-        { user_id: subscriptionDetails.user_id },
-        { $set: { isSubscribed: true } }
-      );
-      return result;
-    } catch (error) {
-      throw new CustomError(
-        "Error creating subscription",
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

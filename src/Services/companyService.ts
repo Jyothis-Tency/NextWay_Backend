@@ -22,6 +22,7 @@ import {
 } from "../Utils/emailNotificationUtils";
 import {
   emitNewJobNotification,
+  emitApplicationStatusUpdate,
   // emitApplicationStatusUpdate,
 } from "../Config/socketConfig";
 
@@ -502,6 +503,17 @@ class CompanyServices implements ICompanyServices {
         company.name,
         jobPost.title,
         status
+      );
+
+      emitApplicationStatusUpdate(
+        {
+          applicationId,
+          jobId: jobApplication.job_id.toString(),
+          companyName: company.name,
+          jobTitle: jobPost.title,
+          status,
+        },
+        jobApplication.user_id
       );
 
       await this.companyRepository.updateApplicationStatus(

@@ -208,52 +208,6 @@ class UserController {
     }
   };
 
-  createOrder = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { planId, userId } = req.body;
-      const order = await this.userService.createOrder(planId, userId);
-      if (order) {
-        res.status(HttpStatusCode.OK).json({ order });
-      }
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      console.log("verifyPayment");
-
-      const {
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        planId,
-        userId,
-      } = req.body;
-      console.log(
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        planId,
-        userId
-      );
-      const subscription = await this.userService.verifyPayment(
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        userId,
-        planId
-      );
-      if (subscription) {
-        res
-          .status(HttpStatusCode.OK)
-          .json({ success: true, data: subscription });
-      }
-    } catch (error) {
-      next(error);
-    }
-  };
 
   getSubscriptionHistory = async (
     req: Request,

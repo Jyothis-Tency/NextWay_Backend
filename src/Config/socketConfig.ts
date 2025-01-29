@@ -186,6 +186,24 @@ export const emitNewJobNotification = (notification: {
   io.emit("notification:newJob", notification);
 };
 
+export const emitApplicationStatusUpdate = (
+  notification: {
+    applicationId: string;
+    jobId: string;
+    companyName: string;
+    jobTitle: string;
+    status: string;
+  },
+  user_id: string
+) => {
+  log("Emitting application status update:", notification);
+  const io = getSocketInstance();
+
+  const roomName = `user_${user_id}`;
+
+  io.to(roomName).emit("notification:applicationStatusUpdate", notification);
+};
+
 export const emitNewApplicationNotification = (notification: {
   applicationId: string;
   companyId: string;
