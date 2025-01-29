@@ -23,6 +23,7 @@ const jobPostSchema = new Schema<IJobPost>(
       required: true,
       ref: "Company",
     },
+    companyName: String,
     status: {
       type: String,
       enum: ["open", "closed", "paused"],

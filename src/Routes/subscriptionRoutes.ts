@@ -26,7 +26,8 @@ const userRepository = new UserRepository(
   JobApplication,
   SubscriptionDetails,
   SubscriptionPlan,
-  JobPost
+  JobPost,
+  SubscriptionHistory
 );
 const subscriptionServices = new SubscriptionServices(
   subscriptionRepository,

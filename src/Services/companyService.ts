@@ -345,7 +345,7 @@ class CompanyServices implements ICompanyServices {
           jobPostData.company_id
         );
         if (company) {
-          await sendNewJobNotification(
+          sendNewJobNotification(
             company.name,
             jobPostData.title,
             jobPostData.location
@@ -497,7 +497,7 @@ class CompanyServices implements ICompanyServices {
         throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
       }
 
-      await sendApplicationStatusUpdate(
+      sendApplicationStatusUpdate(
         jobApplication.email,
         company.name,
         jobPost.title,

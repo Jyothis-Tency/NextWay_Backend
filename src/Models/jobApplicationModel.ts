@@ -67,6 +67,7 @@ const jobApplication = new Schema<IJobApplication>(
         },
         dateTime: {
           type: Date,
+          default: Date.now(),
         },
         message: {
           type: String,

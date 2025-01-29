@@ -90,7 +90,7 @@ export const initializeSocket = (server: http.Server) => {
 
     socket.on("start-interview", (interviewData) => {
       console.log("Interview started in socketConfig:", interviewData);
-      const { roomID, applicationId, user_id ,companyName} = interviewData;
+      const { roomID, applicationId, user_id, companyName } = interviewData;
 
       // Create a unique room for this interview
       const interviewRoomName = `interview_${applicationId}`;
@@ -104,7 +104,6 @@ export const initializeSocket = (server: http.Server) => {
         applicationId,
         companyName,
         message: "Interview is ready to start",
-
       });
 
       console.log(
@@ -123,12 +122,28 @@ export const initializeSocket = (server: http.Server) => {
       });
     });
 
+    socket.on("user:in-interview", (data) => {
+      console.log("user:in-interview on on on on on on");
+      console.log("User in interview event received:", data);
+      const { userId, companyId, roomID } = data;
+      // Notify company that user is in the interview
+      const companyRoom = getCompanyRoomName(userId);
+      io.emit("user:in-interview-going", {
+        userId,
+        companyId,
+        roomID,
+      });
+    });
+
     socket.on("end-interview", async (interviewData) => {
       console.log("Interview ended in socketConfig:", interviewData);
-      const { roomID, applicationId, user_id,startTime } = interviewData;
+
+      const { roomID, applicationId, user_id, startTime } = interviewData;
+      console.log("startTime", startTime);
       const userRoom = `user_${user_id}`;
 
       io.to(userRoom).emit("interview:end", roomID);
+
       // Broadcast to the specific user's room
       await companyService.setInterviewDetails(applicationId, {
         interviewStatus: "conducted",

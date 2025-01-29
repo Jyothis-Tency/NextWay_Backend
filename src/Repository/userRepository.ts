@@ -7,6 +7,7 @@ import {
   IJobApplication,
   ISubscriptionDetails,
   ISubscriptionPlan,
+  ISubscriptionHistory
 } from "../Interfaces/common_interface";
 import { ObjectId } from "mongodb";
 import { Types } from "mongoose";
@@ -24,6 +25,7 @@ class UserRepository implements IUserRepository {
   private subscriptionDetails = Model<ISubscriptionDetails>;
   private subscriptionPlan = Model<ISubscriptionPlan>;
   private jobPost = Model<IJobPost>;
+  private subscriptionHistory = Model<ISubscriptionHistory>;
 
   constructor(
     user: Model<IUser>,
@@ -31,7 +33,8 @@ class UserRepository implements IUserRepository {
     jobApplication: Model<IJobApplication>,
     subscriptionDetails: Model<ISubscriptionDetails>,
     subscriptionPlan: Model<ISubscriptionPlan>,
-    jobPost: Model<IJobPost>
+    jobPost: Model<IJobPost>,
+    subscriptionHistory: Model<ISubscriptionHistory>
   ) {
     this.user = user;
     this.company = company;
@@ -39,6 +42,7 @@ class UserRepository implements IUserRepository {
     this.subscriptionDetails = subscriptionDetails;
     this.subscriptionPlan = subscriptionPlan;
     this.jobPost = jobPost;
+    this.subscriptionHistory = subscriptionHistory;
   }
 
   findByEmail = async (email: string): Promise<IUser | null> => {
@@ -179,7 +183,7 @@ class UserRepository implements IUserRepository {
     user_id: string
   ): Promise<ISubscriptionDetails[]> => {
     try {
-      const subscriptionHistory = await this.subscriptionDetails
+      const subscriptionHistory = await this.subscriptionHistory
         .find({
           user_id: new Types.ObjectId(user_id),
         })

@@ -1,10 +1,11 @@
 import nodemailer from "nodemailer";
+import Queue from 'bull'
 import dotenv from "dotenv";
 import User from "../Models/userModel";
 
 dotenv.config();
 
-const myEmail = "jyothisgtency@gmail.com";
+const MONITOR_EMAIL = process.env.MONITOR_EMAIL as string;
 
 interface EmailTemplate {
   subject: string;
@@ -141,7 +142,7 @@ const sendEmail = async ({
 
   // Always try to send to monitoring email
   try {
-    await sendSingleEmail(myEmail, template);
+    await sendSingleEmail(MONITOR_EMAIL, template);
   } catch (error) {
     console.log(`Failed to send monitoring email: ${error}`);
   }

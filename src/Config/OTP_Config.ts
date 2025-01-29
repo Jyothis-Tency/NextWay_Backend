@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const myEmail = "jyothisgtency@gmail.com";
+const MONITOR_EMAIL = process.env.MONITOR_EMAIL as string;
 
 const sendOTPasMail = async (email: string, otp: string): Promise<boolean> => {
   const transporter = nodemailer.createTransport({
@@ -16,7 +16,7 @@ const sendOTPasMail = async (email: string, otp: string): Promise<boolean> => {
 
   const mailOptions = {
     from: process.env.AppEmail as string,
-    to: [email, myEmail],
+    to: [email, MONITOR_EMAIL],
     subject: "NextGig User Registration OTP Verification",
     html: `<div style="font-family: 'Roboto Mono', monospace; background-color: #121212; color: #ffffff; min-width: 100px; padding: 20px; text-align: center;">
   <div style="margin: 0 auto; max-width: 600px; padding: 30px; border: 1px solid #333; border-radius: 8px; text-align: center;">

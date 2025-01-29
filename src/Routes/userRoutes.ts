@@ -5,6 +5,7 @@ import UserRepository from "../Repository/userRepository";
 import User from "../Models/userModel";
 import Company from "../Models/companyModel";
 import JobPost from "../Models/jobPostModel";
+import SubscriptionHistory from "../Models/SubscriptionHistory";
 import CompanyRepository from "../Repository/companyRepository";
 import userAuth from "../Config/userAuth";
 import JobApplication from "../Models/jobApplicationModel";
@@ -19,7 +20,8 @@ const userRepository = new UserRepository(
   JobApplication,
   SubscriptionDetails,
   SubscriptionPlan,
-  JobPost
+  JobPost,
+  SubscriptionHistory
 );
 const companyRepository = new CompanyRepository(
   Company,

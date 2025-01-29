@@ -115,6 +115,7 @@ export interface IJobPost extends Document {
   perks?: string[];
   postedBy: mongoose.Types.ObjectId; // Reference to Recruiter
   company_id: string; // Reference to Company
+  companyName: string;
   applicants?: mongoose.Types.ObjectId[]; // References JobApplication IDs
   status?: "open" | "closed" | "paused";
 }
