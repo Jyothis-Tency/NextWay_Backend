@@ -99,7 +99,13 @@ class UserController {
       next(error);
     }
   };
-
+  /**
+   * 
+   * @param req 
+   * @param res 
+   * @param next 
+   * 
+   */
   forgotPasswordReset = async (
     req: Request,
     res: Response,
