@@ -10,12 +10,20 @@ import CompanyModel from "../Models/companyModel";
 import JobApplicationModel from "../Models/jobApplicationModel";
 import JobPost from "../Models/jobPostModel";
 import { log } from "console";
+import AdminRepository from "../Repository/adminRepository";
+import User from "../Models/userModel";
+import SubscriptionPlan from "../Models/subscriptionPlanModel";
 const companyRepository = new CompanyRepository(
   CompanyModel,
   JobPost,
   JobApplicationModel
 );
-const companyService = new CompanyServices(companyRepository);
+const adminRepository = new AdminRepository(
+  CompanyModel,
+  User,
+  SubscriptionPlan
+);
+const companyService = new CompanyServices(companyRepository, adminRepository);
 const chatRepository = new ChatRepository(ChatModel, UserModel, CompanyModel);
 const chatService = new ChatServices(chatRepository);
 
