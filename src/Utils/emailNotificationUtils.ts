@@ -29,8 +29,8 @@ const templates = {
     jobTitle: string,
     location: string
   ): EmailTemplate => ({
-    subject: "NextGig - New Job Opportunity Alert!",
-    heading: "Hello from NextGig!",
+    subject: "NextWay - New Job Opportunity Alert!",
+    heading: "Hello from NextWay!",
     mainContent: `A new job opportunity awaits you at <span style="font-weight: bold; color: #00e6e6;">${companyName}</span>`,
     additionalInfo: [
       { label: "Position", value: jobTitle },
@@ -43,7 +43,7 @@ const templates = {
     jobTitle: string,
     status: string
   ): EmailTemplate => ({
-    subject: "NextGig - Application Status Update",
+    subject: "NextWay - Application Status Update",
     heading: "Application Status Update",
     mainContent: `Your application status has been updated for the position at <span style="font-weight: bold; color: #00e6e6;">${companyName}</span>`,
     additionalInfo: [
@@ -82,13 +82,13 @@ const generateEmailHTML = (template: EmailTemplate): string => {
         </div>
 
         <p style="font-size: 1em; color: #b3b3b3; font-family: 'Roboto Mono', monospace;">
-          Log in to <span style="font-weight: bold; color: #00e6e6;">NextGig</span> now to view complete details!
+          Log in to <span style="font-weight: bold; color: #00e6e6;">NextWay</span> now to view complete details!
         </p>
 
         <hr style="border: none; border-top: 1px solid #333; margin: 25px 0;" />
         <div style="text-align: center;">
           <p style="font-size: 0.85em; color: #666; font-family: 'Roboto Mono', monospace;">
-            &copy; ${new Date().getFullYear()} NextGig. All rights reserved.
+            &copy; ${new Date().getFullYear()} NextWay. All rights reserved.
           </p>
         </div>
       </div>
