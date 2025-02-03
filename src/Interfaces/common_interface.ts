@@ -109,7 +109,7 @@ export interface IJobPost extends Document {
   location: string;
   employmentType?: "Full-time" | "Part-time" | "Contract" | "Internship";
   salaryRange?: { min: number; max: number };
-  requirements?: string[];
+  skills?: string[];
   jobApplications?: mongoose.Types.ObjectId[];
   responsibilities?: string[];
   perks?: string[];

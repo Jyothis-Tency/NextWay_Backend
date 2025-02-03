@@ -14,7 +14,7 @@ const jobPostSchema = new Schema<IJobPost>(
       min: Number,
       max: Number,
     },
-    requirements: [String],
+    skills: [String],
     responsibilities: [String],
     perks: [String],
     jobApplications: [{ type: Schema.Types.ObjectId, ref: "JobApplication" }],
