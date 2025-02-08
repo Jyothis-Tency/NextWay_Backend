@@ -1,10 +1,10 @@
-import { ICompany, ISubscriptionPlan, IUser } from "./common_interface";
+import { ICompany, IJobPost, ISubscriptionPlan, IUser } from "./common_interface";
 
 export interface IAdminServices {
-  loginAdmin(
+  loginAdmin  (
     email: string,
     password: string
-  ): { email: string; adminAccessToken: string; adminRefreshToken: string };
+  ): Promise<{ email: string; adminAccessToken: string; adminRefreshToken: string }> 
 
   fetchAllUserDetails(): Promise<IUser[] | null>;
   fetchAllCompanyDetails(): Promise<ICompany[] | null>;
@@ -15,4 +15,20 @@ export interface IAdminServices {
   ): Promise<ISubscriptionPlan | ISubscriptionPlan[]>;
   createNewSubscriptionPlan(planData: ISubscriptionPlan): Promise<boolean>;
   editSubscriptionPlan(planData: ISubscriptionPlan): Promise<boolean>;
+  getAllUserProfileImages(): Promise<
+    {
+      user_id: string;
+      profileImage: string;
+    }[]
+  >;
+  getAllCompanyProfileImages(): Promise<
+    {
+      company_id: string;
+      profileImage: string;
+    }[]
+    >;
+    getAllJobPosts (): Promise<{
+      jobPosts: IJobPost[];
+      companies: ICompany[];
+    }>
 }

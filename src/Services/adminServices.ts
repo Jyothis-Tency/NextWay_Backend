@@ -1,9 +1,12 @@
-import { createRefreshToken, createToken } from "../Config/jwtConfig";
+import { createRefreshToken, createAccessToken } from "../Config/jwtConfig";
 import { v4 as uuidv4 } from "uuid";
 import { IAdminServices } from "../Interfaces/admin_service_interface";
 import { IAdminRepository } from "../Interfaces/admin_repository_interface";
+import FileService from "../Utils/fileUploadUtils";
+
 import {
   ICompany,
+  IJobPost,
   ISubscriptionPlan,
   IUser,
 } from "../Interfaces/common_interface";
@@ -12,21 +15,32 @@ import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 import razorpayInstance from "../Config/razorpayConfig";
 import mongoose from "mongoose";
+import { IUserRepository } from "../Interfaces/user_repository_interface";
+import { ICompanyRepository } from "../Interfaces/company_repository_interface";
 
 const adminEmail = process.env.ADMIN_EMAIL!;
 const adminPassword = process.env.ADMIN_PASSWORD!;
 
 class AdminServices implements IAdminServices {
   private adminRepository: IAdminRepository;
-
-  constructor(adminRepository: IAdminRepository) {
+  private userRepository: IUserRepository;
+  private companyRepository:ICompanyRepository
+  private fileService: FileService;
+  constructor(
+    adminRepository: IAdminRepository,
+    userRepository: IUserRepository,
+    companyRepository:ICompanyRepository
+  ) {
     this.adminRepository = adminRepository;
+    this.userRepository = userRepository;
+    this.companyRepository=companyRepository
+    this.fileService = new FileService();
   }
 
-  loginAdmin = (
+  loginAdmin = async (
     email: string,
     password: string
-  ): { email: string; adminAccessToken: string; adminRefreshToken: string } => {
+  ): Promise<{ email: string; adminAccessToken: string; adminRefreshToken: string }> => {
     try {
       console.log(adminEmail, adminPassword);
       console.log(email, password);
@@ -36,7 +50,10 @@ class AdminServices implements IAdminServices {
       } else if (password !== adminPassword) {
         throw new Error("Invalid password");
       }
-      const adminAccessToken: string = createToken(email as string, "Admin");
+      const adminAccessToken: string = createAccessToken(
+        email as string,
+        "admin"
+      );
       const adminRefreshToken: string = createRefreshToken(
         email as string,
         "Admin"
@@ -128,7 +145,7 @@ class AdminServices implements IAdminServices {
         );
       }
       console.log("planData", planData);
-      planData.duration = 30
+      planData.duration = 30;
       // Create plan in Razorpay first
       const razorpayPlan = await razorpayInstance.plans.create({
         period: planData.period,
@@ -244,6 +261,112 @@ class AdminServices implements IAdminServices {
     } catch (error) {
       console.error("Error in editSubscriptionPlan:", error);
       throw error;
+    }
+  };
+
+  getAllUserProfileImages = async (): Promise<
+    {
+      user_id: string;
+      profileImage: string;
+    }[]
+  > => {
+    try {
+      const allUsers = await this.adminRepository.getAllUsers();
+      if (!allUsers) {
+        return [];
+      }
+
+      // Use Promise.all to handle multiple async operations
+      const userImagesWithId = await Promise.all(
+        allUsers
+          .filter((user) => user.profileImage) // Filter companies with profile images
+          .map(async (user) => {
+            const imageURL = await this.fileService.getFile(
+              user.profileImage as string
+            );
+            return {
+              user_id: user.user_id.toString(),
+              profileImage: `data:image/jpeg;base64,${imageURL.toString(
+                "base64"
+              )}`,
+            };
+          })
+      );
+
+      return userImagesWithId;
+    } catch (error: any) {
+      throw new CustomError(
+        `Error fetching company profile images: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getAllCompanyProfileImages = async (): Promise<
+    {
+      company_id: string;
+      profileImage: string;
+    }[]
+  > => {
+    try {
+      const allCompanies = await this.adminRepository.getAllCompanies();
+      if (!allCompanies) {
+        return [];
+      }
+
+      // Use Promise.all to handle multiple async operations
+      const companyImagesWithId = await Promise.all(
+        allCompanies
+          .filter((company) => company.profileImage) // Filter companys with profile images
+          .map(async (company) => {
+            const imageURL = await this.fileService.getFile(
+              company.profileImage as string
+            );
+            return {
+              company_id: company.company_id.toString(),
+              profileImage: `data:image/jpeg;base64,${imageURL.toString(
+                "base64"
+              )}`,
+            };
+          })
+      );
+
+      return companyImagesWithId;
+    } catch (error: any) {
+      throw new CustomError(
+        `Error fetching user profile images: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getAllJobPosts = async (): Promise<{
+    jobPosts: IJobPost[];
+    companies: ICompany[];
+  }> => {
+    try {
+      const jobPosts = await this.companyRepository.getAllJobs();
+      if (!jobPosts || jobPosts.length === 0) {
+        throw new CustomError("No job posts found", HttpStatusCode.NOT_FOUND);
+      }
+
+      const companyIds = Array.from(
+        new Set(jobPosts.map((job) => job.company_id))
+      );
+      const companies = await this.userRepository.getAllCompaniesByIds(
+        companyIds
+      );
+      if (!companies || companies.length === 0) {
+        throw new CustomError("No companies found", HttpStatusCode.NOT_FOUND);
+      }
+
+      return { jobPosts, companies };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching job posts: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 }

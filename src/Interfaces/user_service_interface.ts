@@ -6,6 +6,7 @@ import {
   IJobApplication,
   RazorpayOrder,
   ISubscriptionDetails,
+  ISubscriptionPlan,
 } from "./common_interface";
 
 export interface IUserServices {
@@ -42,11 +43,15 @@ export interface IUserServices {
     user_id: string
   ): Promise<ISubscriptionDetails | null>;
   getJobApplicationsByUserId(user_id: string): Promise<IJobApplication[]>;
-  searchUser(query: string): Promise<IUser[]>;
-  getAllUserProfileImages(): Promise<
+  searchCompany(query: string): Promise<ICompany[]>;
+  getAllCompanyProfileImages(): Promise<
     {
-      user_id: string;
+      company_id: string;
       profileImage: string;
     }[]
   >;
+  fetchAllCompanyDetails(): Promise<ICompany[] | null>;
+  getSubscriptionPlans(
+    plan_id: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]>;
 }

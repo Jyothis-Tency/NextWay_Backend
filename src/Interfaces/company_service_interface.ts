@@ -3,6 +3,7 @@ import {
   ICompany,
   IJobPost,
   IJobApplication,
+  IUser,
 } from "./common_interface";
 
 export interface ICompanyServices {
@@ -41,15 +42,17 @@ export interface ICompanyServices {
     statusMessage: string
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
-  searchCompany(query: string): Promise<ICompany[]>;
+
+  searchUser (query: string): Promise<IUser[]>
   setInterviewDetails(
     applicationId: string,
     interviewDetails: { interviewStatus: string; dateTime: Date }
   ): Promise<boolean>;
-  getAllCompanyProfileImages(): Promise<
+  getAllUserProfileImages(): Promise<
     {
-      company_id: string;
+      user_id: string;
       profileImage: string;
     }[]
-  >;
+    >;
+  getUserProfile (user_id: string): Promise<any>
 }

@@ -6,31 +6,40 @@ import HTTP_statusCode from "../Enums/httpStatusCodes";
 
 dotenv.config();
 
-const secret_key = process.env.JWT_KEY as string;
+const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_TOKEN_SECRET as string
+const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_TOKEN_SECRET as string
 
-const createToken = (
-  user_id: mongoose.Types.ObjectId | string,
+const createAccessToken = (
+  _id: mongoose.Types.ObjectId | string,
   role: string
 ): string => {
-  return jwt.sign({ user_id, role }, secret_key, { expiresIn: "30m" });
+  return jwt.sign({ _id, role }, ACCESS_TOKEN_SECRET, { expiresIn: "30m" });
 };
 
 const createRefreshToken = (
-  user_id: mongoose.Types.ObjectId | string,
+  _id: mongoose.Types.ObjectId | string,
   role: string
 ): string => {
-  return jwt.sign({ user_id, role }, secret_key, { expiresIn: "7d" });
+  return jwt.sign({ _id, role }, REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
 };
+
+const verifyJwtToken = (token: string, secret: string): string | jwt.JwtPayload => {
+  try {
+    return jwt.verify(token, secret);
+  } catch (error) {
+    return ""
+  }
+}
 
 const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const accessToken: string = req.cookies.AccessToken;
     if (accessToken) {
-      jwt.verify(accessToken, secret_key, async (err, decoded) => {
+      jwt.verify(accessToken, ACCESS_TOKEN_SECRET, async (err, decoded) => {
         if (err) {
           await handleRefreshToken(req, res, next);
         } else {
-          const { role } = decoded as jwt.JwtPayload;
+          const { role } = decoded as jwt.JwtPayload; 
           if (role !== "user") {
             return res
               .status(HTTP_statusCode.UNAUTHORIZED)
@@ -56,7 +65,7 @@ const handleRefreshToken = async (
 ) => {
   const refreshToken: string = req.cookies.RefreshToken;
   if (refreshToken) {
-    jwt.verify(refreshToken, secret_key, (err, decoded) => {
+    jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
       if (err) {
         return res
           .status(HTTP_statusCode.UNAUTHORIZED)
@@ -68,7 +77,7 @@ const handleRefreshToken = async (
             .status(HTTP_statusCode.UNAUTHORIZED)
             .json({ message: "Access denied. Token payload invalid." });
         } else {
-          const newAccessToken = createToken(user_id, role);
+          const newAccessToken = createAccessToken(user_id, role);
           res.cookie("AccessToken", newAccessToken, {
             httpOnly: true,
             sameSite: "strict",
@@ -85,4 +94,4 @@ const handleRefreshToken = async (
   }
 };
 
-export { createToken, verifyToken, createRefreshToken };
+export { createAccessToken, verifyToken, createRefreshToken,verifyJwtToken };

@@ -182,7 +182,7 @@ class AdminController {
       next(error);
     }
   };
-  
+
   editSubscriptionPlan = async (
     req: Request,
     res: Response,
@@ -191,7 +191,7 @@ class AdminController {
     try {
       const planData = req.body;
       console.log(planData);
-      
+
       const result = await this.adminService.editSubscriptionPlan(planData);
 
       if (result) {
@@ -201,6 +201,43 @@ class AdminController {
       }
     } catch (error: any) {
       console.log(`Error in emailValidation at userController : ${error}`);
+      next(error);
+    }
+  };
+
+  getAllCompanyProfileImages = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const companyImages =
+        await this.adminService.getAllCompanyProfileImages();
+      res.status(HttpStatusCode.OK).json(companyImages);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllUserProfileImages = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const userImages = await this.adminService.getAllUserProfileImages();
+      res.status(HttpStatusCode.OK).json(userImages);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllJobPosts = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const serviceResponse = await this.adminService.getAllJobPosts();
+      const { jobPosts, companies } = serviceResponse;
+      res.status(HttpStatusCode.OK).json({ status: true, jobPosts, companies });
+    } catch (error) {
       next(error);
     }
   };

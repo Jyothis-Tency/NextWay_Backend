@@ -7,7 +7,6 @@ import Company from "../Models/companyModel";
 import JobPost from "../Models/jobPostModel";
 import SubscriptionHistory from "../Models/SubscriptionHistory";
 import CompanyRepository from "../Repository/companyRepository";
-import userAuth from "../Config/userAuth";
 import JobApplication from "../Models/jobApplicationModel";
 import { upload } from "../Config/multerConfig";
 import SubscriptionDetails from "../Models/subscriptionDetails";
@@ -50,22 +49,22 @@ userRoutes
   .post("/forgot-password-email", userController.forgotPasswordEmail)
   .post("/forgot-password-OTP", userController.forgotPasswordOTP)
   .post("/forgot-password-reset", userController.forgotPasswordReset)
-  .get("/getAllJobPosts", userAuth, userController.getAllJobPosts)
+  .get("/getAllJobPosts", userController.getAllJobPosts)
   .get(
     "/user-profile/:user_id",
-    userAuth,
+
     userController.getUserProfileController
   )
-  .put("/edit-user/:user_id", userAuth, userController.editUserDetails)
+  .put("/edit-user/:user_id", userController.editUserDetails)
   .post(
     "/post-job-application",
-    userAuth,
+
     upload.single("resume"),
     userController.newJobApplication
   )
   .post(
     "/upload-profile-picture/:user_id",
-    userAuth,
+
     upload.single("profilePicture"),
     userController.updateProfileImgController
   )
@@ -76,10 +75,13 @@ userRoutes
   )
   .get(
     "/job-applications/:user_id",
-    userAuth,
+
     userController.getJobApplicationsByUserId
   )
-  .get("/search/users", userController.searchUser)
-  .get("/getAllUserProfileImages", userController.getAllUserProfileImages);
+  .get("/search/companies", userController.searchCompany)
+  .get("/getAllCompanyProfileImages", userController.getAllCompanyProfileImages)
+  .get("/all-companies", userController.fetchAllCompanyDetails)
+  .get("/get-subscription-plan", userController.getSubscriptionPlan);
+  
 
 export default userRoutes;

@@ -17,6 +17,7 @@ export interface IUser extends Document {
   email: string;
   phone: string;
   password: string;
+  role: string;
   isBlocked?: boolean;
   isSubscribed?: boolean;
   dob?: Date;
@@ -81,6 +82,7 @@ export interface ICompany extends Document {
   email: string; // Company account email
   phone: string; // Company account phone number
   password: string; // Company account password
+  role: string;
   isBlocked: boolean;
   profileImage?: string; // Optional profile picture URL
 

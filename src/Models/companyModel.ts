@@ -12,6 +12,7 @@ const companySchema = new Schema<ICompany>(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
+    role: { type: String, default: "company" },
     profileImage: String,
 
     // Company-specific details

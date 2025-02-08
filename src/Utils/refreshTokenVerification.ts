@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import { createToken } from "./jwtConfig";
+import { createAccessToken } from "../Config/jwtConfig";
 
 dotenv.config();
 
-const secret_key = process.env.SECRET_KEY as string;
+const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_TOKEN_SECRET as string;
 
 const refreshTokenHandler = (req: Request, res: Response) => {
   const { userId } = req.body;
@@ -20,7 +20,7 @@ const refreshTokenHandler = (req: Request, res: Response) => {
     return res.status(401).json({ message: "Refresh token is missing." });
   }
 
-  jwt.verify(refreshToken, secret_key, (err: jwt.VerifyErrors | null) => {
+  jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err: jwt.VerifyErrors | null) => {
     if (err) {
       console.error("Error verifying refresh token:", err.message);
       return res
@@ -28,7 +28,7 @@ const refreshTokenHandler = (req: Request, res: Response) => {
         .json({ message: "Invalid or expired refresh token." });
     }
 
-    const newAccessToken = createToken(userId, "User");
+    const newAccessToken = createAccessToken(userId, "user");
 
     res.json({ accessToken: newAccessToken });
   });

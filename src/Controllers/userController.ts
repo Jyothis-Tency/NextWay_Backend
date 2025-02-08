@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 import { IUser } from "../Interfaces/common_interface";
 import { IUserServices } from "../Interfaces/user_service_interface";
+import { ICompanyServices } from "../Interfaces/company_service_interface";
+import { IAdminServices } from "../Interfaces/admin_service_interface";
 
 class UserController {
   private userService: IUserServices;
@@ -100,11 +102,11 @@ class UserController {
     }
   };
   /**
-   * 
-   * @param req 
-   * @param res 
-   * @param next 
-   * 
+   *
+   * @param req
+   * @param res
+   * @param next
+   *
    */
   forgotPasswordReset = async (
     req: Request,
@@ -264,25 +266,65 @@ class UserController {
     }
   };
 
-  searchUser = async (req: Request, res: Response, next: NextFunction) => {
+  searchCompany = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { query } = req.query;
-      const users = await this.userService.searchUser(query as string);
-      res.status(HttpStatusCode.OK).json(users);
+      console.log(query);
+
+      const companies = await this.userService.searchCompany(query as string);
+
+      res.status(HttpStatusCode.OK).json(companies);
     } catch (error) {
       next(error);
     }
   };
 
-  getAllUserProfileImages = async (
+  getAllCompanyProfileImages = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userImages = await this.userService.getAllUserProfileImages();
-      res.status(HttpStatusCode.OK).json(userImages);
+      const companyImages = await this.userService.getAllCompanyProfileImages();
+      res.status(HttpStatusCode.OK).json(companyImages);
     } catch (error) {
+      next(error);
+    }
+  };
+
+  fetchAllCompanyDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const companyData = await this.userService.fetchAllCompanyDetails();
+
+      if (companyData) {
+        res
+          .status(HttpStatusCode.OK)
+          .json({ status: true, companyData: companyData });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getSubscriptionPlan = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const plan_id = req.body.plan_id;
+
+      const result = await this.userService.getSubscriptionPlans(plan_id);
+
+      if (result) {
+        res.status(HttpStatusCode.OK).json({ planData: result });
+      }
+    } catch (error: any) {
+      console.log(`Error in emailValidation at userController : ${error}`);
       next(error);
     }
   };

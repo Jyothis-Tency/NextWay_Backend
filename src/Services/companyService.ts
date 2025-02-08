@@ -3,15 +3,17 @@ import {
   ICompany,
   ICleanCompanyData,
   IJobApplication,
+  IUser,
 } from "../Interfaces/common_interface";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import { ICompanyRepository } from "../Interfaces/company_repository_interface";
 import { ICompanyServices } from "../Interfaces/company_service_interface";
 import { IAdminRepository } from "../Interfaces/admin_repository_interface";
+import { IUserRepository } from "../Interfaces/user_repository_interface";
 import redisClient from "../Utils/redisUtils";
 import otpSender from "../Utils/otpUtils";
-import { createToken, createRefreshToken } from "../Config/jwtConfig";
+import { createAccessToken, createRefreshToken } from "../Config/jwtConfig";
 import { ObjectId } from "mongodb";
 import crypto from "crypto";
 import CustomError from "../Utils/customError";
@@ -30,15 +32,18 @@ import {
 class CompanyServices implements ICompanyServices {
   private companyRepository: ICompanyRepository;
   private adminRepository: IAdminRepository;
+  private userRepository: IUserRepository;
   private companyData: ICompany | null = null;
   private fileService: FileService;
 
   constructor(
     companyRepository: ICompanyRepository,
-    adminRepository: IAdminRepository
+    adminRepository: IAdminRepository,
+    userRepository: IUserRepository
   ) {
     this.companyRepository = companyRepository;
     this.adminRepository = adminRepository;
+    this.userRepository = userRepository;
     this.fileService = new FileService();
   }
 
@@ -184,8 +189,8 @@ class CompanyServices implements ICompanyServices {
       if (imgBuffer) {
         imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
       }
-      const accessToken = createToken(company.company_id, "company");
-      const refreshToken = createRefreshToken(company.company_id, "company");
+      const accessToken = createAccessToken(company.company_id, company.role);
+      const refreshToken = createRefreshToken(company.company_id, company.role);
       const companyData = {
         company_id: company?.company_id,
         name: company?.name,
@@ -610,9 +615,9 @@ class CompanyServices implements ICompanyServices {
     }
   };
 
-  searchCompany = async (query: string): Promise<ICompany[]> => {
+  searchUser = async (query: string): Promise<IUser[]> => {
     try {
-      return await this.companyRepository.searchByCompanyName(query);
+      return await this.userRepository.searchByUserName(query);
     } catch (error: any) {
       throw new CustomError(
         `Error searching for companies: ${error.message}`,
@@ -649,28 +654,28 @@ class CompanyServices implements ICompanyServices {
     }
   };
 
-  getAllCompanyProfileImages = async (): Promise<
+  getAllUserProfileImages = async (): Promise<
     {
-      company_id: string;
+      user_id: string;
       profileImage: string;
     }[]
   > => {
     try {
-      const allCompanies = await this.adminRepository.getAllCompanies();
-      if (!allCompanies) {
+      const allUsers = await this.adminRepository.getAllUsers();
+      if (!allUsers) {
         return [];
       }
 
       // Use Promise.all to handle multiple async operations
-      const companyImagesWithId = await Promise.all(
-        allCompanies
-          .filter((company) => company.profileImage) // Filter companies with profile images
-          .map(async (company) => {
+      const userImagesWithId = await Promise.all(
+        allUsers
+          .filter((user) => user.profileImage) // Filter companies with profile images
+          .map(async (user) => {
             const imageURL = await this.fileService.getFile(
-              company.profileImage as string
+              user.profileImage as string
             );
             return {
-              company_id: company.company_id.toString(),
+              user_id: user.user_id.toString(),
               profileImage: `data:image/jpeg;base64,${imageURL.toString(
                 "base64"
               )}`,
@@ -678,10 +683,31 @@ class CompanyServices implements ICompanyServices {
           })
       );
 
-      return companyImagesWithId;
+      return userImagesWithId;
     } catch (error: any) {
       throw new CustomError(
         `Error fetching company profile images: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getUserProfile = async (user_id: string): Promise<any> => {
+    try {
+      const userProfile = await this.userRepository.getUserById(user_id);
+      if (!userProfile) {
+        throw new CustomError("User not found", HttpStatusCode.NOT_FOUND);
+      }
+
+      let imgBuffer = null;
+      if (userProfile.profileImage) {
+        imgBuffer = await this.fileService.getFile(userProfile.profileImage);
+      }
+      return { userProfile, imgBuffer };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching user profile: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

@@ -312,7 +312,11 @@ class CompanyController {
     try {
       const { applicationId } = req.params;
       const { status, statusMessage } = req.body;
-      await this.companyService.updateApplicationStatus(applicationId, status,statusMessage);
+      await this.companyService.updateApplicationStatus(
+        applicationId,
+        status,
+        statusMessage
+      );
       res.status(HttpStatusCode.OK).json({
         status: true,
         message: "Application status updated successfully",
@@ -343,16 +347,11 @@ class CompanyController {
     }
   };
 
-  searchCompany = async (req: Request, res: Response, next: NextFunction) => {
+  searchUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { query } = req.query;
-      console.log(query);
-
-      const companies = await this.companyService.searchCompany(
-        query as string
-      );
-      log(companies);
-      res.status(HttpStatusCode.OK).json(companies);
+      const users = await this.companyService.searchUser(query as string);
+      res.status(HttpStatusCode.OK).json(users);
     } catch (error) {
       next(error);
     }
@@ -380,15 +379,38 @@ class CompanyController {
     }
   };
 
-  
-  getAllCompanyProfileImages = async (
+  getAllUserProfileImages = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const companyImages = await this.companyService.getAllCompanyProfileImages();
-      res.status(HttpStatusCode.OK).json(companyImages);
+      const userImages = await this.companyService.getAllUserProfileImages();
+      res.status(HttpStatusCode.OK).json(userImages);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getUserProfileController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const user_id = req.params.user_id;
+      const { userProfile, imgBuffer } = await this.companyService.getUserProfile(
+        user_id
+      );
+      let imageBase64 = "";
+      if (imgBuffer) {
+        imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
+      }
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        userProfile,
+        image: imageBase64,
+      });
     } catch (error) {
       next(error);
     }

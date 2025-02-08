@@ -9,6 +9,7 @@ import {
   RazorpayOrder,
   RazorpayOrderReceipt,
   ISubscriptionDetails,
+  ISubscriptionPlan,
 } from "../Interfaces/common_interface";
 import { IUserRepository } from "../Interfaces/user_repository_interface";
 import { ICompanyRepository } from "../Interfaces/company_repository_interface";
@@ -16,7 +17,7 @@ import { IAdminRepository } from "../Interfaces/admin_repository_interface";
 import { IUserServices } from "../Interfaces/user_service_interface";
 import redisClient from "../Utils/redisUtils";
 import otpSender from "../Utils/otpUtils";
-import { createToken, createRefreshToken } from "../Config/jwtConfig";
+import { createAccessToken, createRefreshToken } from "../Config/jwtConfig";
 import FileService from "../Utils/fileUploadUtils";
 import { ObjectId } from "mongodb";
 import crypto from "crypto";
@@ -92,8 +93,8 @@ class UserServices implements IUserServices {
         imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
       }
 
-      const accessToken = createToken(user.user_id, "user");
-      const refreshToken = createRefreshToken(user.user_id, "user");
+      const accessToken = createAccessToken(user.user_id, user.role);
+      const refreshToken = createRefreshToken(user.user_id, user.role);
       const userData = {
         user_id: user?.user_id,
         firstName: user?.firstName,
@@ -104,6 +105,8 @@ class UserServices implements IUserServices {
         profileImage: imageBase64,
         location: user?.location,
         skills: user?.skills,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       };
 
       return { userData, accessToken, refreshToken };
@@ -512,9 +515,9 @@ class UserServices implements IUserServices {
     }
   };
 
-  searchUser = async (query: string): Promise<IUser[]> => {
+  searchCompany = async (query: string): Promise<ICompany[]> => {
     try {
-      return await this.userRepository.searchByUserName(query);
+      return await this.companyRepository.searchByCompanyName(query);
     } catch (error: any) {
       throw new CustomError(
         `Error searching for companies: ${error.message}`,
@@ -523,28 +526,28 @@ class UserServices implements IUserServices {
     }
   };
 
-  getAllUserProfileImages = async (): Promise<
+  getAllCompanyProfileImages = async (): Promise<
     {
-      user_id: string;
+      company_id: string;
       profileImage: string;
     }[]
   > => {
     try {
-      const allUsers = await this.adminRepository.getAllUsers();
-      if (!allUsers) {
+      const allCompanies = await this.adminRepository.getAllCompanies();
+      if (!allCompanies) {
         return [];
       }
 
       // Use Promise.all to handle multiple async operations
-      const userImagesWithId = await Promise.all(
-        allUsers
-          .filter((user) => user.profileImage) // Filter users with profile images
-          .map(async (user) => {
+      const companyImagesWithId = await Promise.all(
+        allCompanies
+          .filter((company) => company.profileImage) // Filter companys with profile images
+          .map(async (company) => {
             const imageURL = await this.fileService.getFile(
-              user.profileImage as string
+              company.profileImage as string
             );
             return {
-              user_id: user.user_id.toString(),
+              company_id: company.company_id.toString(),
               profileImage: `data:image/jpeg;base64,${imageURL.toString(
                 "base64"
               )}`,
@@ -552,12 +555,49 @@ class UserServices implements IUserServices {
           })
       );
 
-      return userImagesWithId;
+      return companyImagesWithId;
     } catch (error: any) {
       throw new CustomError(
         `Error fetching user profile images: ${error.message}`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
+    }
+  };
+
+  fetchAllCompanyDetails = async (): Promise<ICompany[] | null> => {
+    try {
+      const companiesData = await this.adminRepository.getAllCompanies();
+      if (!companiesData) {
+        // throw new Error("companies data not found");
+        throw new CustomError(
+          "companies data not found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      return companiesData;
+    } catch (error: any) {
+      console.log(`Error in forgotPassword at userServices : ${error}`);
+      throw new CustomError(
+        `Error fetching all companies: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getSubscriptionPlans = async (
+    plan_id: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]> => {
+    try {
+      const result = await this.adminRepository.getSubscriptionPlans(plan_id);
+      if (!result) {
+        throw new CustomError(
+          "Error occurred getting subscription plan",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      return result;
+    } catch (error) {
+      throw error;
     }
   };
 }

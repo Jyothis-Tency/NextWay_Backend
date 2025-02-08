@@ -9,7 +9,7 @@ const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
-
+    role: { type: String, default: "user" },
     isBlocked: { type: Boolean, default: false },
     isSubscribed: { type: Boolean, default: false },
     dob: Date,
@@ -63,4 +63,4 @@ const userSchema = new Schema<IUser>(
 
 const User = mongoose.model<IUser>("User", userSchema);
 
-export default User
+export default User;
