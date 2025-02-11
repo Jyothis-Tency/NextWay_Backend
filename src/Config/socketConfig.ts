@@ -13,6 +13,11 @@ import { log } from "console";
 import AdminRepository from "../Repository/adminRepository";
 import User from "../Models/userModel";
 import SubscriptionPlan from "../Models/subscriptionPlanModel";
+import UserRepository from "../Repository/userRepository";
+import Company from "../Models/companyModel";
+import JobApplication from "../Models/jobApplicationModel";
+import SubscriptionDetails from "../Models/subscriptionDetails";
+import SubscriptionHistory from "../Models/SubscriptionHistory";
 const companyRepository = new CompanyRepository(
   CompanyModel,
   JobPost,
@@ -23,7 +28,20 @@ const adminRepository = new AdminRepository(
   User,
   SubscriptionPlan
 );
-const companyService = new CompanyServices(companyRepository, adminRepository);
+const userRepository = new UserRepository(
+  User,
+  Company,
+  JobApplication,
+  SubscriptionDetails,
+  SubscriptionPlan,
+  JobPost,
+  SubscriptionHistory
+);
+const companyService = new CompanyServices(
+  companyRepository,
+  adminRepository,
+  userRepository
+);
 const chatRepository = new ChatRepository(ChatModel, UserModel, CompanyModel);
 const chatService = new ChatServices(chatRepository);
 
@@ -41,18 +59,20 @@ export const initializeSocket = (server: http.Server) => {
       methods: ["GET", "POST"],
       credentials: true,
     },
+    pingInterval: 10000, // Send a ping every 10 seconds
+    pingTimeout: 5000,
   });
 
   io.on("connection", (socket) => {
     const clientType = socket.handshake.query.clientType as "user" | "company";
     const clientId = socket.handshake.query.clientId as string;
 
-    console.log(
-      `A ${clientType} connected:`,
-      socket.id,
-      `${clientType}_id:`,
-      clientId
-    );
+    // console.log(
+    //   `A ${clientType} connected:`,
+    //   socket.id,
+    //   `${clientType}_id:`,
+    //   clientId
+    // );
 
     // Join client to their personal room
     const personalRoom = `${clientType}_${clientId}`;
@@ -79,25 +99,25 @@ export const initializeSocket = (server: http.Server) => {
         chatData.company_id
       );
       socket.join(chatRoomName);
-      console.log(`Socket ${socket.id} joined room ${chatRoomName}`);
+      // console.log(`Socket ${socket.id} joined room ${chatRoomName}`);
     });
 
     socket.on("join:subscription", (userId: string) => {
       const subscriptionRoom = getSubscriptionRoomName(userId);
       socket.join(subscriptionRoom);
-      console.log(
-        `Socket ${socket.id} joined subscription room ${subscriptionRoom}`
-      );
+      // console.log(
+      //   `Socket ${socket.id} joined subscription room ${subscriptionRoom}`
+      // );
     });
 
     socket.on("join:company", (companyId: string) => {
       const companyRoom = getCompanyRoomName(companyId);
       socket.join(companyRoom);
-      console.log(`Socket ${socket.id} joined company room ${companyRoom}`);
+      // console.log(`Socket ${socket.id} joined company room ${companyRoom}`);
     });
 
     socket.on("start-interview", (interviewData) => {
-      console.log("Interview started in socketConfig:", interviewData);
+      // console.log("Interview started in socketConfig:", interviewData);
       const { roomID, applicationId, user_id, companyName } = interviewData;
 
       // Create a unique room for this interview
@@ -114,9 +134,9 @@ export const initializeSocket = (server: http.Server) => {
         message: "Interview is ready to start",
       });
 
-      console.log(
-        `Interview started for application ${applicationId} in room ${roomID}`
-      );
+      // console.log(
+      //   `Interview started for application ${applicationId} in room ${roomID}`
+      // );
     });
 
     socket.on("user:leave", (data) => {
@@ -166,6 +186,9 @@ export const initializeSocket = (server: http.Server) => {
 
     socket.on("disconnect", (reason) => {
       console.log("User disconnected:", reason);
+      if (clientType === "user") {
+        socket.leave(getSubscriptionRoomName(clientId));
+      }
     });
   });
 };

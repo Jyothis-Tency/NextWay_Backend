@@ -2,6 +2,7 @@ import {
   ISubscriptionDetails,
   ISubscriptionPlan,
   IOrderResponse,
+  ISubscriptionHistory,
 } from "./common_interface";
 
 export interface ISubscriptionServices {
@@ -14,11 +15,9 @@ export interface ISubscriptionServices {
     razorpay_payment_id: string,
     razorpay_order_id: string,
     razorpay_signature: string
-  ):Promise<string|undefined>;
+  ): Promise<string | undefined>;
 
-  cancelSubscription(
-    subscriptionId: string
-  ): Promise<boolean>;
+  cancelSubscription(subscriptionId: string): Promise<boolean>;
 
   getAllSubscriptions(): Promise<ISubscriptionDetails[]>;
 
@@ -28,4 +27,11 @@ export interface ISubscriptionServices {
     signature: string,
     body: any
   ): Promise<boolean>;
+  getSubscriptionPlans(
+    plan_id: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]>;
+  getSubscriptionHistory(user_id: string): Promise<ISubscriptionHistory[]>;
+  getCurrentSubscriptionDetail(
+    user_id: string
+  ): Promise<ISubscriptionDetails | null>;
 }

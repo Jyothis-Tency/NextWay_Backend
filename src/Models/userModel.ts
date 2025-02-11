@@ -12,6 +12,7 @@ const userSchema = new Schema<IUser>(
     role: { type: String, default: "user" },
     isBlocked: { type: Boolean, default: false },
     isSubscribed: { type: Boolean, default: false },
+    subscriptionFeatures: [String],
     dob: Date,
     gender: String,
     location: String,

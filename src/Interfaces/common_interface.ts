@@ -20,6 +20,7 @@ export interface IUser extends Document {
   role: string;
   isBlocked?: boolean;
   isSubscribed?: boolean;
+  subscriptionFeatures: string[];
   dob?: Date;
   gender?: string;
   location?: string;

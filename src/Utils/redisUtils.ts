@@ -6,6 +6,8 @@ let redisClient: RedisClientType = createClient({
   socket: {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : undefined, // Your custom port
+    reconnectStrategy: (retries) => Math.min(retries * 50, 500),
+    connectTimeout: 10000,
   },
 });
 

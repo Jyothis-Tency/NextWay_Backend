@@ -13,6 +13,7 @@ import SubscriptionPlan from "../Models/subscriptionPlanModel";
 import SubscriptionDetails from "../Models/subscriptionDetails";
 import SubscriptionHistory from "../Models/SubscriptionHistory";
 import UserRepository from "../Repository/userRepository";
+import { companyRefreshTokenHandle } from "../Utils/companyRefreshTokenVerification";
 
 const companyRepository = new CompanyRepository(
   Company,
@@ -46,71 +47,79 @@ companyRoutes
   .post("/forgot-password-email", companyController.forgotPasswordEmail)
   .post("/forgot-password-OTP", companyController.forgotPasswordOTP)
   .post("/forgot-password-reset", companyController.forgotPasswordReset)
+  .get("/auth/refresh", companyRefreshTokenHandle)
   .get(
     "/get-company/:company_id",
-
+    companyAuth,
     companyController.getCompanyDetails
   )
   .put(
     "/edit-company/:company_id",
-
+    companyAuth,
     companyController.editCompanyDetails
   )
   .put(
     "/create-update-job-post",
-
+    companyAuth,
     companyController.createOrUpdateJobPost
   )
   .get(
     "/get-company-jobs/:company_id",
-
+    companyAuth,
     companyController.jobPostsByCompany
   )
   .get(
     "/get-job-post/:job_id",
-
+    companyAuth,
     companyController.getJobPostByJobId
   )
   .delete(
     "/delete-job-post/:job_id",
-
+    companyAuth,
     companyController.deleteJobPostById
   )
   .get(
     "/job-applications/:company_id",
-
+    companyAuth,
     companyController.getJobApplicationsByCompanyId
   )
   .post(
     "/upload-profile-img/:company_id",
-
+    companyAuth,
     upload.single("profilePicture"),
     companyController.updateProfileImgController
   )
 
   .get(
     "/job-applications-post/:jobId",
+    companyAuth,
     companyController.getJobApplicationsByJobId
   )
   .put(
     "/update-application-status/:applicationId",
+    companyAuth,
     companyController.updateApplicationStatus
   )
 
   .get(
     "/job-applications-detailed/:applicationId",
-
+    companyAuth,
     companyController.getJobApplicationById
   )
-  .get("/search/users", companyController.searchUser)
+  .get("/search/users", companyAuth, companyController.searchUser)
   .put(
     "/set-interview-details/:applicationId",
+    companyAuth,
     companyController.setInterviewDetails
   )
-  .get("/getAllUserProfileImages", companyController.getAllUserProfileImages)
+  .get(
+    "/getAllUserProfileImages",
+    companyAuth,
+    companyController.getAllUserProfileImages
+  )
   .get(
     "/user-profile/:user_id",
-
+    companyAuth,
     companyController.getUserProfileController
   );
 

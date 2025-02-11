@@ -13,6 +13,8 @@ import SubscriptionDetails from "../Models/subscriptionDetails";
 import SubscriptionPlan from "../Models/subscriptionPlanModel";
 import { getSocketInstance } from "../Config/socketConfig";
 import AdminRepository from "../Repository/adminRepository";
+import { userRefreshTokenHandle } from "../Utils/userRefreshTokenVerification";
+import { userAuth } from "../Middleware/userAuth";
 
 const userRepository = new UserRepository(
   User,
@@ -49,39 +51,48 @@ userRoutes
   .post("/forgot-password-email", userController.forgotPasswordEmail)
   .post("/forgot-password-OTP", userController.forgotPasswordOTP)
   .post("/forgot-password-reset", userController.forgotPasswordReset)
+  .get("/auth/refresh", userRefreshTokenHandle)
   .get("/getAllJobPosts", userController.getAllJobPosts)
   .get(
     "/user-profile/:user_id",
-
+    userAuth,
     userController.getUserProfileController
   )
-  .put("/edit-user/:user_id", userController.editUserDetails)
+  .put("/edit-user/:user_id", userAuth, userController.editUserDetails)
   .post(
     "/post-job-application",
-
+    userAuth,
     upload.single("resume"),
     userController.newJobApplication
   )
   .post(
     "/upload-profile-picture/:user_id",
-
+    userAuth,
     upload.single("profilePicture"),
     userController.updateProfileImgController
   )
-  .get(`/subscription-history/:userId`, userController.getSubscriptionHistory)
+  .get(
+    `/subscription-history/:userId`,
+    userAuth,
+    userController.getSubscriptionHistory
+  )
   .get(
     `/current-subscription/:userId`,
+    userAuth,
     userController.getCurrentSubscriptionDetail
   )
   .get(
     "/job-applications/:user_id",
-
+    userAuth,
     userController.getJobApplicationsByUserId
   )
-  .get("/search/companies", userController.searchCompany)
-  .get("/getAllCompanyProfileImages", userController.getAllCompanyProfileImages)
+  .get("/search/companies", userAuth, userController.searchCompany)
+  .get(
+    "/getAllCompanyProfileImages",
+
+    userController.getAllCompanyProfileImages
+  )
   .get("/all-companies", userController.fetchAllCompanyDetails)
-  .get("/get-subscription-plan", userController.getSubscriptionPlan);
-  
+  .get("/get-subscription-plan", userAuth, userController.getSubscriptionPlan);
 
 export default userRoutes;

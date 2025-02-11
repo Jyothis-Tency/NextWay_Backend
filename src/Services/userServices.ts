@@ -95,6 +95,9 @@ class UserServices implements IUserServices {
 
       const accessToken = createAccessToken(user.user_id, user.role);
       const refreshToken = createRefreshToken(user.user_id, user.role);
+      console.log("accessToken", accessToken);
+      console.log("refreshToken", refreshToken);
+
       const userData = {
         user_id: user?.user_id,
         firstName: user?.firstName,
@@ -107,6 +110,9 @@ class UserServices implements IUserServices {
         skills: user?.skills,
         accessToken: accessToken,
         refreshToken: refreshToken,
+        role: user.role,
+        isSubscribed: user.isSubscribed,
+        subscriptionFeatures: user.subscriptionFeatures,
       };
 
       return { userData, accessToken, refreshToken };
@@ -475,12 +481,12 @@ class UserServices implements IUserServices {
       const result = await this.userRepository.getCurrentSubscriptionDetails(
         user_id
       );
-      if (!result) {
-        throw new CustomError(
-          "No active subscription found",
-          HttpStatusCode.NOT_FOUND
-        );
-      }
+      // if (!result) {
+      //   throw new CustomError(
+      //     "No active subscription found",
+      //     HttpStatusCode.NOT_FOUND
+      //   );
+      // }
       return result;
     } catch (error: any) {
       if (error instanceof CustomError) throw error;

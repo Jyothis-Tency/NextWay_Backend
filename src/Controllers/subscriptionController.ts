@@ -28,11 +28,9 @@ class SubscriptionController {
 
   verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("Verify Payment in Subscription Controller");
       const data = JSON.parse(req.body.body);
       const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
         data;
-      console.log(JSON.parse(req.body.body));
       const result = await this.subscriptionService.verifyPayment(
         razorpay_payment_id,
         razorpay_order_id,
@@ -73,12 +71,13 @@ class SubscriptionController {
   ) => {
     console.log("Get all subscriptions");
     try {
-      const subscriptions = await this.subscriptionService.getAllSubscriptions();
+      const subscriptions =
+        await this.subscriptionService.getAllSubscriptions();
       res.status(HttpStatusCode.OK).json(subscriptions);
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   webHookController = async (
     req: Request,
@@ -97,6 +96,64 @@ class SubscriptionController {
         req.body
       );
       res.status(HttpStatusCode.OK).json({ received: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getSubscriptionPlan = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const plan_id = req.body.plan_id;
+
+      const result = await this.subscriptionService.getSubscriptionPlans(
+        plan_id
+      );
+
+      if (result) {
+        res.status(HttpStatusCode.OK).json({ planData: result });
+      }
+    } catch (error: any) {
+      console.log(`Error in emailValidation at userController : ${error}`);
+      next(error);
+    }
+  };
+
+  getSubscriptionHistory = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const user_id = req.params.userId;
+      const history = await this.subscriptionService.getSubscriptionHistory(
+        user_id
+      );
+      if (history) {
+        res.status(HttpStatusCode.OK).json({ history });
+      }
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCurrentSubscriptionDetail = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      console.log("getCurrentSubscriptionDetails in subscriptionController");
+
+      const user_id = req.params.userId;
+      const current =
+        await this.subscriptionService.getCurrentSubscriptionDetail(user_id);
+      console.log("current", current);
+
+      res.status(HttpStatusCode.OK).json({ current: current });
     } catch (error) {
       next(error);
     }

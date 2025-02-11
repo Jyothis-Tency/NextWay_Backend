@@ -3,7 +3,6 @@ import express, { Router } from "express";
 import SubscriptionPlan from "../Models/subscriptionPlanModel";
 import SubscriptionDetails from "../Models/subscriptionDetails";
 
-
 import SubscriptionRepository from "../Repository/subscriptionRepository";
 import UserRepository from "../Repository/userRepository";
 import SubscriptionServices from "../Services/subscriptionService";
@@ -18,7 +17,8 @@ import SubscriptionHistory from "../Models/SubscriptionHistory";
 const subscriptionRepository = new SubscriptionRepository(
   SubscriptionPlan,
   SubscriptionDetails,
-  SubscriptionHistory
+  SubscriptionHistory,
+  User
 );
 const userRepository = new UserRepository(
   User,
@@ -45,8 +45,17 @@ subscriptionRoutes
   .get("/all-Subscriptions", subscriptionController.getAllSubscriptions)
   .post(
     "/webhook",
-    // express.raw({ type: "application/json" }),
     subscriptionController.webHookController
+  )
+  .get("/get-subscription-plan", subscriptionController.getSubscriptionPlan)
+  .get(
+    `/subscription-history/:userId`,
+
+    subscriptionController.getSubscriptionHistory
+  )
+  .get(
+    `/current-subscription/:userId`,
+    subscriptionController.getCurrentSubscriptionDetail
   );
 
 export default subscriptionRoutes;

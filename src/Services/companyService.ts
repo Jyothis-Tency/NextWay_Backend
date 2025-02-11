@@ -196,6 +196,9 @@ class CompanyServices implements ICompanyServices {
         name: company?.name,
         email: company?.email,
         phone: company?.phone,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        role: company.role,
         isBlocked: company?.isBlocked,
         profileImage: imageBase64,
       };

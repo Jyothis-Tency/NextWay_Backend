@@ -2,67 +2,51 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 import User from "../Models/userModel";
+import mongoose from "mongoose";
+
+import { userRefreshTokenHandle } from "../Utils/userRefreshTokenVerification";
 
 const ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_TOKEN_SECRET as string;
 
-async function userAuth(req: Request, res: Response, next: NextFunction) {
+export const userAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    console.log("userAuth triggered");
+    console.log("userAuth");
+    // console.log(req.headers);
+
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res
-        .status(HttpStatusCode.UNAUTHORIZED)
-        .json({ message: "Access token required" });
-    }
-
-    const token = authHeader?.split(" ")[1];
-
-    if (!token) {
-      res
-        .status(HttpStatusCode.UNAUTHORIZED)
-        .json({ message: "Token is missing" });
+      res.status(401).json({ message: "Access token is required", role: null });
       return;
     }
 
-    jwt.verify(token, ACCESS_TOKEN_SECRET, async (err, decode) => {
+    const token = authHeader.split(" ")[1];
+    // const token = "";
+    console.log("token", token);
+    jwt.verify(token, ACCESS_TOKEN_SECRET, async (err, decoded) => {
       if (err) {
-        res
-          .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: "Invalid token" });
-        return;
+        return userRefreshTokenHandle(req, res, next);
+      }
+      const { _id, role } = decoded as jwt.JwtPayload;
+
+      // Check if user exists and is not blocked
+      const user = await User.findOne({
+        user_id: new mongoose.Types.ObjectId(_id),
+      });
+      // console.log("user in userAuth", user);
+
+      if (!user || user?.isBlocked) {
+        return res
+          .status(403)
+          .json({ message: "Your account is blocked by Admin", role: role });
       }
 
-      const { user_id } = decode as jwt.JwtPayload;
-      const user = await User.findById(user_id);
-
-      if (!user) {
-        res
-          .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: "User not found" });
-        return
-      }
-
-      if (user?.role !== "user") {
-        res
-          .status(HttpStatusCode.UNAUTHORIZED)
-          .json({ message: "Not Authorized for your current role" });
-      }
+      next();
     });
-
-    const user_id = req.headers["user_id"];
-
-    if (user_id) {
-      const user = await User.findOne({ user_id: user_id });
-
-      if (user?.isBlocked === true) {
-        res.status(HttpStatusCode.FORBIDDEN).json("user blocked");
-        return;
-      }
-    }
-    next();
   } catch (error) {
-    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json("server error");
+    res.status(401).json({ message: "Unauthorized access", role: null });
   }
-}
-
-export default userAuth;
+};

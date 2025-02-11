@@ -3,6 +3,8 @@ import HttpStatusCode from "../Enums/httpStatusCodes";
 import {
   ISubscriptionDetails,
   IOrderResponse,
+  ISubscriptionPlan,
+  ISubscriptionHistory,
 } from "../Interfaces/common_interface";
 import { ISubscriptionRepository } from "../Interfaces/subscription_repository_interface";
 import { IUserRepository } from "../Interfaces/user_repository_interface";
@@ -146,29 +148,6 @@ class SubscriptionServices implements ISubscriptionServices {
     }
   };
 
-  cancelSubscription = async (subscriptionId: string): Promise<boolean> => {
-    try {
-      console.log("cancelSubscription subscriptionService");
-      const subscriptionDetails =
-        await this.subscriptionRepository.findSubscription(subscriptionId);
-      if (subscriptionDetails?.status !== "active") {
-        throw new Error("Active subscription not found");
-      }
-      await razorpayInstance.subscriptions.cancel(subscriptionId);
-      // Update subscription status in the database
-      await this.subscriptionRepository.updateSubscriptionStatus(
-        { subscriptionId: subscriptionId },
-        { status: "cancelled", isCurrent: false }
-      );
-      return true;
-    } catch (error) {
-      throw new CustomError(
-        "Error cancelling subscription details",
-        HttpStatusCode.INTERNAL_SERVER_ERROR
-      );
-    }
-  };
-
   getAllSubscriptions = async (): Promise<ISubscriptionDetails[]> => {
     try {
       console.log("getAllSubscriptions subscriptionService");
@@ -297,7 +276,7 @@ class SubscriptionServices implements ISubscriptionServices {
         isCurrent: true,
         subscriptionId: order.id,
       });
-    
+
     await this.subscriptionRepository.createSubscriptionHistory({
       user_id: userId,
       plan_id: planId,
@@ -309,12 +288,16 @@ class SubscriptionServices implements ISubscriptionServices {
       price: plan.price,
       createdAt: new Date(),
     });
-
     const roomName = getSubscriptionRoomName(userId);
     this.io.to(roomName).emit("subscription:updated", {
       type: "new_subscription",
       subscription: newSubscription,
     });
+    await this.subscriptionRepository.updateUserIsSubscribed(
+      userId,
+      true,
+      plan.features
+    );
   };
 
   private handlePaymentCaptured = async (payload: any) => {
@@ -403,6 +386,12 @@ class SubscriptionServices implements ISubscriptionServices {
         createdAt: new Date(),
       });
 
+      await this.subscriptionRepository.updateUserIsSubscribed(
+        subscriptionDetails.user_id.toString(),
+        true,
+        plan.features
+      );
+
       if (subscription.notes && subscription.notes.userId) {
         const roomName = getSubscriptionRoomName(subscription.notes.userId);
         this.io.to(roomName).emit("subscription:updated", {
@@ -414,9 +403,44 @@ class SubscriptionServices implements ISubscriptionServices {
     }
   };
 
+  cancelSubscription = async (subscriptionId: string): Promise<boolean> => {
+    try {
+      console.log("cancelSubscription subscriptionService");
+      console.log(subscriptionId);
+
+      const subscriptionDetails =
+        await this.subscriptionRepository.findSubscription(subscriptionId);
+      if (!subscriptionDetails) {
+        throw new CustomError(
+          "Subscription not found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      await razorpayInstance.subscriptions.cancel(subscriptionId);
+      // Update subscription status in the database
+      // await this.subscriptionRepository.updateSubscriptionStatus(
+      //   { subscriptionId: subscriptionId },
+      //   { status: "cancelled", isCurrent: false }
+      // );
+
+      // await this.subscriptionRepository.updateUserIsSubscribed(
+      //   subscriptionDetails.user_id.toString(),
+      //   false,
+      //   []
+      // );
+      return true;
+    } catch (error) {
+      throw new CustomError(
+        "Error cancelling subscription details",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
   private handleSubscriptionCancelled = async (payload: any) => {
     console.log("handleSubscriptionCancelled subscriptionService");
     const { subscription } = payload;
+    console.log("subscription payload", subscription);
 
     const updatedSubscription =
       await this.subscriptionRepository.updateSubscriptionStatus(
@@ -427,13 +451,16 @@ class SubscriptionServices implements ISubscriptionServices {
           endDate: new Date(),
         }
       );
-    if (subscription.notes && subscription.notes.userId) {
-      const roomName = getSubscriptionRoomName(subscription.notes.userId);
-      this.io.to(roomName).emit("subscription:updated", {
-        type: "subscription_cancelled",
-        subscriptionId: subscription.id,
-      });
-    }
+    const roomName = getSubscriptionRoomName(subscription.entity.notes.userId);
+    await this.subscriptionRepository.updateUserIsSubscribed(
+      subscription.entity.notes.user_id,
+      false,
+      []
+    );
+    this.io.to(roomName).emit("subscription:updated", {
+      type: "subscription_cancelled",
+      subscriptionId: subscription.id,
+    });
   };
 
   private handlePaymentAuthorized = async (payload: any) => {
@@ -442,6 +469,72 @@ class SubscriptionServices implements ISubscriptionServices {
     // Implement your logic for handling payment authorization
     // console.log("Payment authorized:", payment);
     // You might want to update the subscription status or notify the user
+  };
+
+  getSubscriptionPlans = async (
+    plan_id: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]> => {
+    try {
+      const result = await this.subscriptionRepository.getSubscriptionPlans(
+        plan_id
+      );
+      if (!result) {
+        throw new CustomError(
+          "Error occurred getting subscription plan",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  getSubscriptionHistory = async (
+    user_id: string
+  ): Promise<ISubscriptionHistory[]> => {
+    try {
+      const result = await this.subscriptionRepository.getSubscriptionHistory(
+        user_id
+      );
+      if (!result || result.length === 0) {
+        throw new CustomError(
+          "No subscription history found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+      return result;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching subscription history: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getCurrentSubscriptionDetail = async (
+    user_id: string
+  ): Promise<ISubscriptionDetails | null> => {
+    try {
+      const result =
+        await this.subscriptionRepository.getCurrentSubscriptionDetails(
+          user_id
+        );
+      // if (!result) {
+      //   throw new CustomError(
+      //     "No active subscription found",
+      //     HttpStatusCode.NOT_FOUND
+      //   );
+      // }
+      return result ;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching current subscription: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
   };
 }
 

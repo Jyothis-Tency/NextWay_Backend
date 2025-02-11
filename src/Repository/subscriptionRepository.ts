@@ -4,24 +4,29 @@ import {
   ISubscriptionDetails,
   ISubscriptionPlan,
   ISubscriptionHistory,
+  IUser,
 } from "../Interfaces/common_interface";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 import { UpdateResult } from "mongodb";
+import { Types } from "mongoose";
 
 class SubscriptionRepository implements ISubscriptionRepository {
   private subscriptionPlan: Model<ISubscriptionPlan>;
   private subscriptionDetails: Model<ISubscriptionDetails>;
   private subscriptionHistory: Model<ISubscriptionHistory>;
+  private User: Model<IUser>;
 
   constructor(
     subscriptionPlan: Model<ISubscriptionPlan>,
     subscriptionDetails: Model<ISubscriptionDetails>,
-    subscriptionHistory: Model<ISubscriptionHistory>
+    subscriptionHistory: Model<ISubscriptionHistory>,
+    User: Model<IUser>
   ) {
     this.subscriptionPlan = subscriptionPlan;
     this.subscriptionDetails = subscriptionDetails;
     this.subscriptionHistory = subscriptionHistory;
+    this.User = User;
   }
 
   findSubscriptionPlanById = async (
@@ -130,6 +135,85 @@ class SubscriptionRepository implements ISubscriptionRepository {
     } catch (error) {
       throw new CustomError(
         "Error fetching chat history",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  updateUserIsSubscribed = async (
+    user_id: string,
+    isSubscribed: boolean,
+    features: string[]
+  ): Promise<boolean> => {
+    try {
+      await this.User.updateOne(
+        { user_id: user_id },
+        { $set: { isSubscribed: isSubscribed, subscriptionFeatures: features } }
+      );
+      return true;
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching chat history",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getSubscriptionPlans = async (
+    plan_id?: string
+  ): Promise<ISubscriptionPlan | ISubscriptionPlan[]> => {
+    try {
+      let result;
+
+      if (plan_id) {
+        result = await this.subscriptionPlan.findById(plan_id);
+        if (!result) {
+          throw new CustomError(
+            "Subscription plan not found",
+            HttpStatusCode.NOT_FOUND
+          );
+        }
+      } else {
+        result = await this.subscriptionPlan.find();
+      }
+
+      return result;
+    } catch (error) {
+      console.log(`Error in getSubscriptionPlan at adminRepository: ${error}`);
+      throw error;
+    }
+  };
+
+  getSubscriptionHistory = async (
+    user_id: string
+  ): Promise<ISubscriptionHistory[]> => {
+    try {
+      const subscriptionHistory = await this.subscriptionHistory
+        .find({
+          user_id: new Types.ObjectId(user_id),
+        })
+        .sort({ createdAt: -1 });
+      return subscriptionHistory;
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching subscription history",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getCurrentSubscriptionDetails = async (
+    user_id: string
+  ): Promise<ISubscriptionDetails | null> => {
+    try {
+      const result = await this.subscriptionDetails.findOne({
+        user_id: user_id,
+        isCurrent: true,
+      });
+      return result;
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching current subscription",
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
