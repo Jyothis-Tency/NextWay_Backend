@@ -240,6 +240,7 @@ class CompanyServices implements ICompanyServices {
         role: company.role,
         isBlocked: company?.isBlocked,
         profileImage: imageBase64,
+        isVerified: company.isVerified,
       };
 
       return { companyData, accessToken, refreshToken };
