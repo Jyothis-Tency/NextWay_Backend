@@ -57,6 +57,18 @@ class UserRepository implements IUserRepository {
     }
   };
 
+  findByGoogleId = async (googleId: string): Promise<IUser | null> => {
+    try {
+      const user = await this.user.findOne({ googleId });
+      return user;
+    } catch (error) {
+      throw new CustomError(
+        "Error finding user by email",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
   // login = async (email: string): Promise<IUser> => {
   //   try {
   //     const userDetails = await this.userModel.aggregate([
@@ -69,11 +81,13 @@ class UserRepository implements IUserRepository {
   //   }
   // };
 
-  register = async (userData: IUser): Promise<IUser> => {
+  register = async (userData: Partial<IUser>): Promise<IUser> => {
     try {
       const newUser = await this.user.create(userData);
       return newUser;
     } catch (error) {
+      console.error(error);
+
       throw new CustomError(
         "Error registering user",
         HttpStatusCode.INTERNAL_SERVER_ERROR

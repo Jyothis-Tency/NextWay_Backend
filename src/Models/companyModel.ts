@@ -9,12 +9,18 @@ const companySchema = new Schema<ICompany>(
       required: true,
       unique: true,
     },
+    googleId: { type: String },
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
     role: { type: String, default: "company" },
     profileImage: String,
-
+    certificate: String,
+    isVerified: {
+      type: String,
+      enum: ["accept", "reject", "pending"],
+      default: "pending",
+    },
     // Company-specific details
     name: { type: String, required: true },
     description: String,
@@ -27,6 +33,7 @@ const companySchema = new Schema<ICompany>(
       twitter: String,
       facebook: String,
     },
+
     employees: [
       {
         employeeId: {
@@ -55,4 +62,4 @@ const companySchema = new Schema<ICompany>(
 
 const Company = mongoose.model<ICompany>("Company", companySchema);
 
-export default Company
+export default Company;

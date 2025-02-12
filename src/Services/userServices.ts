@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
+import { OAuth2Client } from "google-auth-library";
 import {
   ICleanUserData,
   IUser,
@@ -30,6 +31,10 @@ import {
   getCompanyRoomName,
   emitNewApplicationNotification,
 } from "../Config/socketConfig";
+import { verifyGoogleToken } from "../Utils/googleAuth";
+import dotenv from "dotenv";
+dotenv.config();
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 class UserServices implements IUserServices {
   private userRepository: IUserRepository;
@@ -41,6 +46,7 @@ class UserServices implements IUserServices {
   private OTP_expiringTime: Date | null = null;
   private fileService: FileService;
   private io: Server;
+  private client: OAuth2Client;
 
   constructor(
     userRepository: IUserRepository,
@@ -53,6 +59,7 @@ class UserServices implements IUserServices {
     this.adminRepository = adminRepository;
     this.fileService = new FileService();
     this.io = io;
+    this.client = new OAuth2Client(GOOGLE_CLIENT_ID);
   }
 
   loginUser = async (
@@ -125,6 +132,82 @@ class UserServices implements IUserServices {
     }
   };
 
+  handleGoogleAuth = async (
+    token: string
+  ): Promise<Partial<ICleanUserData>> => {
+    try {
+      const payload = await verifyGoogleToken(token);
+      if (!payload) {
+        throw new CustomError(
+          `Invalid Google Token`,
+          HttpStatusCode.INTERNAL_SERVER_ERROR
+        );
+      }
+      let user = await this.userRepository.findByGoogleId(payload.sub);
+      const uuidCode = uuidv4();
+      const hash = crypto.createHash("sha256").update(uuidCode).digest("hex");
+      const objectIdHex = hash.substring(0, 24);
+      const obId = new ObjectId(objectIdHex);
+      if (!user) {
+        const userData = {
+          firstName: payload.given_name || "",
+          lastName: payload.family_name || "",
+          email: payload?.email || "",
+          phone: "",
+          password: hash,
+          confirmPassword: hash,
+          user_id: obId,
+          googleId: payload.sub,
+        };
+        console.log("new user userDat in googleauth", userData);
+
+        user = await this.userRepository.register(userData);
+        if (!user) {
+          throw new CustomError(
+            "Failed to register user",
+            HttpStatusCode.BAD_REQUEST
+          );
+        }
+      }
+      const accessToken = createAccessToken(user?.user_id || "", "user");
+      const refreshToken = createRefreshToken(user?.user_id || "", "user");
+      let imageBase64 = "";
+      if (user.profileImage) {
+        const imgBuffer = await this.fileService.getFile(user.profileImage);
+        if (imgBuffer) {
+          imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString(
+            "base64"
+          )}`;
+        }
+      }
+      console.log("accessToken", accessToken);
+      console.log("refreshToken", refreshToken);
+      const userData = {
+        user_id: user?.user_id,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        email: user?.email,
+        phone: user?.phone,
+        isBlocked: user?.isBlocked,
+        profileImage: imageBase64 || user.profileImage,
+        location: user?.location,
+        skills: user?.skills,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        role: user?.role,
+        isSubscribed: user?.isSubscribed,
+        subscriptionFeatures: user?.subscriptionFeatures,
+      };
+      return userData;
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in user registration: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
   registerUser = async (userData: IUser): Promise<boolean> => {
     try {
       const alreadyExists = await this.userRepository.findByEmail(
@@ -183,6 +266,7 @@ class UserServices implements IUserServices {
       const objectIdHex = hash.substring(0, 24);
       const obId = new ObjectId(objectIdHex);
       userData.user_id = obId;
+      console.log("userData in verifyOTP", userData);
 
       const registeredUser = await this.userRepository.register(userData);
       if (!registeredUser) {
@@ -377,6 +461,8 @@ class UserServices implements IUserServices {
   ): Promise<IJobApplication> => {
     try {
       console.log("newJobApplication");
+      console.log("resumeFile in newJobApplication", resumeFile);
+
       const resumeUrl = await this.fileService.uploadFile(resumeFile);
       if (!resumeUrl) {
         throw new CustomError(

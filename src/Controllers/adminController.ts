@@ -10,7 +10,7 @@ class AdminController {
     this.adminService = adminService;
   }
 
-  loginAdmin = async (req: Request, res: Response) => {
+  loginAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
       console.log("admin login details", email, password);
@@ -19,35 +19,34 @@ class AdminController {
         password
       );
 
-      res.cookie("AdminRefreshToken", serviceResponse.adminRefreshToken, {
+      res.cookie("AdminRefreshToken", serviceResponse.refreshToken, {
         httpOnly: true,
         sameSite: "none",
         secure: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      res.cookie("AdminAccessToken", serviceResponse.adminAccessToken, {
+      res.cookie("AdminAccessToken", serviceResponse.accessToken, {
         httpOnly: true,
         sameSite: "none",
         secure: true,
         maxAge: 15 * 60 * 1000,
       });
-      res.status(HttpStatusCode.OK).send(serviceResponse.email);
+      res
+        .status(HttpStatusCode.OK)
+        .json({ adminData: serviceResponse.adminData });
     } catch (error: any) {
-      console.log("Admin := login error", error);
-      if (error.message === "Invalid email") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "Email is wrong" });
-      } else if (error.message === "Invalid password") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "password is wrong" });
-      }
+      next(error);
     }
   };
 
-  fetchAllUserDetails = async (req: Request, res: Response) => {
+  fetchAllUserDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
+      console.log("fetchAllUserDetails");
+
       const userData = await this.adminService.fetchAllUserDetails();
       console.log(userData);
 
@@ -57,20 +56,14 @@ class AdminController {
           .json({ status: true, userData: userData });
       }
     } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "users data not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "users data not found" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+      next(error);
     }
   };
-  fetchAllCompanyDetails = async (req: Request, res: Response) => {
+  fetchAllCompanyDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const companyData = await this.adminService.fetchAllCompanyDetails();
 
@@ -80,20 +73,14 @@ class AdminController {
           .json({ status: true, companyData: companyData });
       }
     } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "companies data not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "companies data not found" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+      next(error);
     }
   };
-  userBlockOrUnBlock = async (req: Request, res: Response) => {
+  userBlockOrUnBlock = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       console.log(req.body);
 
@@ -104,20 +91,14 @@ class AdminController {
         res.status(HttpStatusCode.OK).json({ status: true, userData: result });
       }
     } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "user not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "user not found" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+      next(error);
     }
   };
-  companyBlockOrUnBlock = async (req: Request, res: Response) => {
+  companyBlockOrUnBlock = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     try {
       const company_id = req.body.company_id;
       console.log("company_id at controller", company_id);
@@ -130,17 +111,7 @@ class AdminController {
           .json({ status: true, companyData: result });
       }
     } catch (error: any) {
-      console.log(`Error in emailValidation at userController : ${error}`);
-      if (error.message === "company not found") {
-        res
-          .status(HttpStatusCode.NOT_FOUND)
-          .json({ message: "company not found" });
-      } else {
-        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-          message:
-            "Something has went wrong. Please be calm and try again later.",
-        });
-      }
+      next(error);
     }
   };
 
@@ -237,6 +208,77 @@ class AdminController {
       const serviceResponse = await this.adminService.getAllJobPosts();
       const { jobPosts, companies } = serviceResponse;
       res.status(HttpStatusCode.OK).json({ status: true, jobPosts, companies });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCompanyDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      console.log("getCompanyDetails");
+
+      const company_id = req.params.company_id;
+      console.log(company_id);
+
+      const { companyProfile, imgBuffer } =
+        await this.adminService.getCompanyDetails(company_id);
+      let imageBase64 = "";
+      if (imgBuffer) {
+        imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
+      }
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        companyProfile,
+        image: imageBase64,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user_id = req.params.user_id;
+      const { userProfile, imgBuffer } = await this.adminService.getUserDetails(
+        user_id
+      );
+      let imageBase64 = "";
+      if (imgBuffer) {
+        imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
+      }
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        userProfile,
+        image: imageBase64,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  changeVerificationStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      console.log("changeVerificationStatus controller");
+
+      const { newStatus } = req.body;
+      const company_id = req.params.company_id;
+      console.log(company_id, newStatus);
+
+      const result = await this.adminService.changeVerificationStatus(
+        company_id,
+        newStatus
+      );
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        newStatus: result,
+      });
     } catch (error) {
       next(error);
     }

@@ -1,10 +1,21 @@
-import { ICompany, IJobPost, ISubscriptionPlan, IUser } from "./common_interface";
+import {
+  IAdmin,
+  ICompany,
+  IJobPost,
+  ISubscriptionPlan,
+  IUser,
+  ICleanAdminData,
+} from "./common_interface";
 
 export interface IAdminServices {
-  loginAdmin  (
+  loginAdmin(
     email: string,
     password: string
-  ): Promise<{ email: string; adminAccessToken: string; adminRefreshToken: string }> 
+  ): Promise<{
+    adminData: ICleanAdminData;
+    accessToken: string;
+    refreshToken: string;
+  }>;
 
   fetchAllUserDetails(): Promise<IUser[] | null>;
   fetchAllCompanyDetails(): Promise<ICompany[] | null>;
@@ -26,9 +37,15 @@ export interface IAdminServices {
       company_id: string;
       profileImage: string;
     }[]
-    >;
-    getAllJobPosts (): Promise<{
-      jobPosts: IJobPost[];
-      companies: ICompany[];
-    }>
+  >;
+  getAllJobPosts(): Promise<{
+    jobPosts: IJobPost[];
+    companies: ICompany[];
+  }>;
+  getCompanyDetails(company_id: string): Promise<any>;
+  getUserDetails(user_id: string): Promise<any>;
+   changeVerificationStatus  (
+    company_id: string,
+    newStatus: string
+  ): Promise<string | null>
 }

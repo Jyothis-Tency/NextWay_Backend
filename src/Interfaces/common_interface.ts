@@ -10,8 +10,15 @@ export interface ISubscriptionPlan extends Document {
   createdAt: Date;
 }
 
+export interface IAdmin extends Document {
+  email: string;
+  password: string;
+  role: string;
+}
+
 export interface IUser extends Document {
   user_id: mongoose.Types.ObjectId;
+  googleId: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -79,6 +86,7 @@ export interface IEmployee {
 
 export interface ICompany extends Document {
   company_id: mongoose.Types.ObjectId; // Unique identifier for the company
+  googleId: string;
   name: string; // Company name
   email: string; // Company account email
   phone: string; // Company account phone number
@@ -86,7 +94,8 @@ export interface ICompany extends Document {
   role: string;
   isBlocked: boolean;
   profileImage?: string; // Optional profile picture URL
-
+  certificate?: string;
+  isVerified: "accept" | "reject" | "pending";
   description?: string; // Optional company description
   industry?: string; // Optional industry type
   companySize?: number; // Optional number of employees
@@ -329,6 +338,14 @@ export interface ICleanUserData {
   phone: string;
   isBlocked: boolean | undefined;
   profileImage?: string;
+}
+
+export interface ICleanAdminData {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  role: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface ICleanCompanyData {

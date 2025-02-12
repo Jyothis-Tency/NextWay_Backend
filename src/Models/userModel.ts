@@ -4,11 +4,12 @@ import { IUser } from "../Interfaces/common_interface";
 const userSchema = new Schema<IUser>(
   {
     user_id: { type: mongoose.Schema.Types.ObjectId, required: true },
+    googleId: { type: String },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true },
-    password: { type: String, required: true },
+    phone: { type: String },
+    password: { type: String },
     role: { type: String, default: "user" },
     isBlocked: { type: Boolean, default: false },
     isSubscribed: { type: Boolean, default: false },

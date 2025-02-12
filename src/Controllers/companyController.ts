@@ -21,7 +21,8 @@ class CompanyController {
   ): Promise<void> => {
     try {
       const companyData: ICompany = req.body;
-      await this.companyService.registerCompany(companyData);
+      const certificate = req.file;
+      await this.companyService.registerCompany(companyData, certificate);
       res.status(HttpStatusCode.OK).send("OTP send to mail successfully");
     } catch (error) {
       next(error);
@@ -35,6 +36,7 @@ class CompanyController {
   ): Promise<void> => {
     try {
       const { receivedOTP, email } = req.body;
+
       await this.companyService.otpVerification(email, receivedOTP);
       res.status(HttpStatusCode.OK).json({ message: "verified" });
     } catch (error) {
@@ -399,9 +401,8 @@ class CompanyController {
   ) => {
     try {
       const user_id = req.params.user_id;
-      const { userProfile, imgBuffer } = await this.companyService.getUserProfile(
-        user_id
-      );
+      const { userProfile, imgBuffer } =
+        await this.companyService.getUserProfile(user_id);
       let imageBase64 = "";
       if (imgBuffer) {
         imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;

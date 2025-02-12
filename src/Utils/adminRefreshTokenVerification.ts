@@ -2,21 +2,27 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { createAccessToken } from "../Config/jwtConfig";
-import Company from "../Models/companyModel";
+import Admin from "../Models/AdminModel";
 import mongoose from "mongoose";
 
 dotenv.config();
 
 const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_TOKEN_SECRET as string;
 
-export const companyRefreshTokenHandle = async (
+export const adminRefreshTokenHandle = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
+    console.log("adminRefreshTokenHandle ");
+
     const refreshToken = req.headers["x-refresh-token"] as string;
+    console.log(refreshToken);
+
     if (!refreshToken) {
+      console.log("!refreshToken");
+
       res
         .status(401)
         .json({ message: "Refresh token is required", role: null });
@@ -25,20 +31,20 @@ export const companyRefreshTokenHandle = async (
 
     jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, async (err, decoded) => {
       if (err) {
+        console.log("Invalid refresh token");
         res.status(401).json({ message: "Invalid refresh token", role: null });
         return;
       }
 
       const { _id, role } = decoded as jwt.JwtPayload
 
-      // Check if company exists and is not blocked
-      const company = await Company.findOne({
-              company_id: new mongoose.Types.ObjectId(_id),
-            });
-      if (!company || company.isBlocked) {
-        res
-          .status(403)
-          .json({ message: "Your account is blocked by Admin", role: role });
+      // Check if admin exists and is not blocked
+      const admin = await Admin.findOne({
+        _id: new mongoose.Types.ObjectId(_id),
+      });
+      if (!admin) {
+        console.log("Your are not admin");
+        res.status(403).json({ message: "Your are not admin", role: role });
         return;
       }
 
@@ -48,6 +54,7 @@ export const companyRefreshTokenHandle = async (
       next();
     });
   } catch (error) {
+    console.log("Unauthorized access");
     res.status(401).json({ message: "Unauthorized access", role: null });
   }
 };

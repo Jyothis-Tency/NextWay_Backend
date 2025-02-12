@@ -16,13 +16,13 @@ export const userRefreshTokenHandle = async (
 ): Promise<void> => {
   try {
     console.log("userRefreshTokenHandle ");
-    
+
     const refreshToken = req.headers["x-refresh-token"] as string;
     console.log(refreshToken);
-    
+
     if (!refreshToken) {
       console.log("!refreshToken");
-      
+
       res
         .status(401)
         .json({ message: "Refresh token is required", role: null });
@@ -36,14 +36,14 @@ export const userRefreshTokenHandle = async (
         return;
       }
 
-      const { _id, role } = decoded as { _id: string; role: string };
+      const { _id, role } = decoded as jwt.JwtPayload;
 
       // Check if user exists and is not blocked
       const user = await User.findOne({
-              user_id: new mongoose.Types.ObjectId(_id),
-            });
+        user_id: new mongoose.Types.ObjectId(_id),
+      });
       if (!user || user.isBlocked) {
-         console.log("!user || user.isBlocked");
+        console.log("!user || user.isBlocked");
         res
           .status(403)
           .json({ message: "Your account is blocked by Admin", role: role });

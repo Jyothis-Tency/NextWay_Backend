@@ -14,6 +14,7 @@ import SubscriptionDetails from "../Models/subscriptionDetails";
 import SubscriptionHistory from "../Models/SubscriptionHistory";
 import UserRepository from "../Repository/userRepository";
 import { companyRefreshTokenHandle } from "../Utils/companyRefreshTokenVerification";
+import Admin from "../Models/AdminModel";
 
 const companyRepository = new CompanyRepository(
   Company,
@@ -29,7 +30,12 @@ const userRepository = new UserRepository(
   JobPost,
   SubscriptionHistory
 );
-const adminRepository = new AdminRepository(Company, User, SubscriptionPlan);
+const adminRepository = new AdminRepository(
+  Admin,
+  Company,
+  User,
+  SubscriptionPlan
+);
 const companyService = new CompanyServices(
   companyRepository,
   adminRepository,
@@ -40,7 +46,11 @@ const companyController = new CompanyController(companyService);
 const companyRoutes = Router();
 
 companyRoutes
-  .post("/register", companyController.registerUser)
+  .post(
+    "/register",
+    upload.single("certificate"),
+    companyController.registerUser
+  )
   .post("/verify-otp", companyController.otpVerification)
   .post("/resent-otp", companyController.resentOtp)
   .post("/login", companyController.loginUser)

@@ -1,14 +1,17 @@
 import { createRefreshToken, createAccessToken } from "../Config/jwtConfig";
 import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcrypt";
 import { IAdminServices } from "../Interfaces/admin_service_interface";
 import { IAdminRepository } from "../Interfaces/admin_repository_interface";
 import FileService from "../Utils/fileUploadUtils";
 
 import {
+  IAdmin,
   ICompany,
   IJobPost,
   ISubscriptionPlan,
   IUser,
+  ICleanAdminData,
 } from "../Interfaces/common_interface";
 import { platform } from "os";
 import CustomError from "../Utils/customError";
@@ -24,41 +27,56 @@ const adminPassword = process.env.ADMIN_PASSWORD!;
 class AdminServices implements IAdminServices {
   private adminRepository: IAdminRepository;
   private userRepository: IUserRepository;
-  private companyRepository:ICompanyRepository
+  private companyRepository: ICompanyRepository;
   private fileService: FileService;
   constructor(
     adminRepository: IAdminRepository,
     userRepository: IUserRepository,
-    companyRepository:ICompanyRepository
+    companyRepository: ICompanyRepository
   ) {
     this.adminRepository = adminRepository;
     this.userRepository = userRepository;
-    this.companyRepository=companyRepository
+    this.companyRepository = companyRepository;
     this.fileService = new FileService();
   }
 
   loginAdmin = async (
     email: string,
     password: string
-  ): Promise<{ email: string; adminAccessToken: string; adminRefreshToken: string }> => {
+  ): Promise<{
+    adminData: ICleanAdminData;
+    accessToken: string;
+    refreshToken: string;
+  }> => {
     try {
       console.log(adminEmail, adminPassword);
       console.log(email, password);
+      const admin = await this.adminRepository.findAdmin(email);
+      console.log("admin", admin);
 
-      if (email !== adminEmail) {
+      if (!admin) {
+        console.log("Admin Not Fount");
+
         throw new Error("Invalid email");
-      } else if (password !== adminPassword) {
-        throw new Error("Invalid password");
       }
-      const adminAccessToken: string = createAccessToken(
-        email as string,
-        "admin"
+      const comparedPassword = await bcrypt.compare(
+        password,
+        admin.password as string
       );
-      const adminRefreshToken: string = createRefreshToken(
-        email as string,
-        "Admin"
-      );
-      return { email, adminAccessToken, adminRefreshToken };
+      if (!comparedPassword) {
+        console.log("Invalid Admin password");
+        throw new CustomError("Invalid password", HttpStatusCode.UNAUTHORIZED);
+      }
+      const accessToken: string = createAccessToken(admin.id, "admin");
+      const refreshToken: string = createRefreshToken(email as string, "Admin");
+      const adminData = {
+        _id: admin.id,
+        email: admin.email,
+        role: admin.role,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      };
+      return { adminData, accessToken, refreshToken };
     } catch (error: any) {
       console.error("Error during admin login services:", error.message);
       throw error;
@@ -365,6 +383,84 @@ class AdminServices implements IAdminServices {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         `Error fetching job posts: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getCompanyDetails = async (company_id: string): Promise<any> => {
+    try {
+      const companyProfile = await this.companyRepository.getCompanyById(
+        company_id
+      );
+      if (!companyProfile) {
+        throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
+      }
+
+      let imgBuffer = null;
+      let certificateBuffer = null;
+      if (companyProfile.profileImage) {
+        imgBuffer = await this.fileService.getFile(companyProfile.profileImage);
+      }
+      if (companyProfile.certificate) {
+        certificateBuffer = await this.fileService.getFile(
+          companyProfile.certificate
+        );
+      }
+      let certificateBase64 = "";
+      if (certificateBuffer) {
+        certificateBase64 = `data:application/pdf;base64,${certificateBuffer.toString(
+          "base64"
+        )}`;
+      }
+      companyProfile.certificate = certificateBase64;
+      return { companyProfile, imgBuffer };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching company profile: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  getUserDetails = async (user_id: string): Promise<any> => {
+    try {
+      const userProfile = await this.userRepository.getUserById(user_id);
+      if (!userProfile) {
+        throw new CustomError("User not found", HttpStatusCode.NOT_FOUND);
+      }
+
+      let imgBuffer = null;
+      if (userProfile.profileImage) {
+        imgBuffer = await this.fileService.getFile(userProfile.profileImage);
+      }
+      return { userProfile, imgBuffer };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching user profile: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  changeVerificationStatus = async (
+    company_id: string,
+    newStatus: string
+  ): Promise<string | null> => {
+    try {
+      const result = await this.companyRepository.changeVerificationStatus(
+        company_id,
+        newStatus
+      );
+      if (!result) {
+        throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
+      }
+      return newStatus;
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching company by ID",
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

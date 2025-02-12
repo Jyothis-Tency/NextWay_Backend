@@ -15,6 +15,7 @@ import { getSocketInstance } from "../Config/socketConfig";
 import AdminRepository from "../Repository/adminRepository";
 import { userRefreshTokenHandle } from "../Utils/userRefreshTokenVerification";
 import { userAuth } from "../Middleware/userAuth";
+import Admin from "../Models/AdminModel";
 
 const userRepository = new UserRepository(
   User,
@@ -31,7 +32,12 @@ const companyRepository = new CompanyRepository(
   JobApplication
 );
 
-const adminRepository = new AdminRepository(Company, User, SubscriptionPlan);
+const adminRepository = new AdminRepository(
+  Admin,
+  Company,
+  User,
+  SubscriptionPlan
+);
 
 const userService = new UserServices(
   userRepository,
@@ -48,6 +54,7 @@ userRoutes
   .post("/verify-otp", userController.otpVerification)
   .post("/resent-otp", userController.resentOtp)
   .post("/login", userController.loginUser)
+  .post("/googleAuth", userController.handleGoogleAuth)
   .post("/forgot-password-email", userController.forgotPasswordEmail)
   .post("/forgot-password-OTP", userController.forgotPasswordOTP)
   .post("/forgot-password-reset", userController.forgotPasswordReset)

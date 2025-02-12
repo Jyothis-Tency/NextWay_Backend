@@ -29,6 +29,10 @@ export interface ICompanyRepository {
     applicationId: string,
     interview: { interviewStatus: string; dateTime: Date }
   ): Promise<boolean>;
+  changeVerificationStatus (
+    company_id: string,
+    newStatus: string
+  ): Promise<boolean>
   // getAllJobPost(userId: string): Promise<IJobPost[]>;
   // findByTitle(title: string): Promise<IJobPost | null>;
   // findCompany(name: string): Promise<ICompany | null>;

@@ -1,7 +1,8 @@
 import { UpdateResult } from "mongoose";
-import { ICompany, IUser, ISubscriptionPlan } from "./common_interface";
+import { ICompany, IUser, ISubscriptionPlan, IAdmin } from "./common_interface";
 
 export interface IAdminRepository {
+  findAdmin(email: string): Promise<IAdmin | null>;
   getAllUsers(): Promise<IUser[] | null>;
   getAllCompanies(): Promise<ICompany[] | null>;
   toggleCompanyBlock(company_id: string): Promise<ICompany | null>;

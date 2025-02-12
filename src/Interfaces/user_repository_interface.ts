@@ -11,7 +11,8 @@ import { ICompany } from "./common_interface";
 export interface IUserRepository {
   findByEmail(email: string): Promise<IUser | null>;
   // authenticate(email: string, password: string): Promise<IUser | null>;
-  register(userData: IUser): Promise<IUser>;
+  findByGoogleId(googleId: string): Promise<IUser | null>
+  register(userData: Partial<IUser>): Promise<IUser>;
   updatePassword(userId: string, newPassword: string): Promise<IUser | null>;
   getUserById(userId: string): Promise<IUser | null>;
   getAllCompaniesByIds(company_id: string[]): Promise<ICompany[]>;

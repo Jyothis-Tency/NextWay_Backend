@@ -18,15 +18,18 @@ import Company from "../Models/companyModel";
 import JobApplication from "../Models/jobApplicationModel";
 import SubscriptionDetails from "../Models/subscriptionDetails";
 import SubscriptionHistory from "../Models/SubscriptionHistory";
+import Admin from "../Models/AdminModel";
 const companyRepository = new CompanyRepository(
   CompanyModel,
   JobPost,
   JobApplicationModel
 );
 const adminRepository = new AdminRepository(
+  Admin,
   CompanyModel,
   User,
-  SubscriptionPlan
+  SubscriptionPlan,
+
 );
 const userRepository = new UserRepository(
   User,

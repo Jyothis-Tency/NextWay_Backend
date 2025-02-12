@@ -4,6 +4,7 @@ import {
   ICompany,
   IUser,
   ISubscriptionPlan,
+  IAdmin,
 } from "../Interfaces/common_interface";
 import { IJobPost } from "../Interfaces/common_interface";
 import { IAdminRepository } from "../Interfaces/admin_repository_interface";
@@ -11,19 +12,32 @@ import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 
 class AdminRepository implements IAdminRepository {
+  private admin = Model<IAdmin>;
   private company = Model<ICompany>;
   private user = Model<IUser>;
   private subscriptionPlan = Model<ISubscriptionPlan>;
 
   constructor(
+    adminModel: Model<IAdmin>,
     companyModel: Model<ICompany>,
     userModel: Model<IUser>,
     subscriptionPlanModel: Model<ISubscriptionPlan>
   ) {
+    this.admin = adminModel;
     this.company = companyModel;
     this.user = userModel;
     this.subscriptionPlan = subscriptionPlanModel;
   }
+
+  findAdmin = async (email: string): Promise<IAdmin | null> => {
+    try {
+      return await this.admin.findOne({ email: email });
+    } catch (error) {
+      console.log(`Error in findAdmin at adminRepository : ${error}`);
+
+      throw error;
+    }
+  };
 
   getAllUsers = async (): Promise<IUser[] | null> => {
     try {
@@ -92,8 +106,6 @@ class AdminRepository implements IAdminRepository {
     }
   };
 
-
-
   getSubscriptionPlans = async (
     plan_id?: string
   ): Promise<ISubscriptionPlan | ISubscriptionPlan[]> => {
@@ -123,7 +135,7 @@ class AdminRepository implements IAdminRepository {
     planData: ISubscriptionPlan
   ): Promise<ISubscriptionPlan> => {
     try {
-      console.log("planData in repo",planData);
+      console.log("planData in repo", planData);
       const { name, price } = planData;
       const isExisting = await this.subscriptionPlan.findOne({
         $or: [{ name }, { price }],
@@ -176,6 +188,7 @@ class AdminRepository implements IAdminRepository {
       throw error;
     }
   };
+  
 }
 
 export default AdminRepository;

@@ -7,7 +7,7 @@ import {
 } from "./common_interface";
 
 export interface ICompanyServices {
-  registerCompany(companyData: ICompany): Promise<boolean>;
+  registerCompany(companyData: ICompany, certificate: any): Promise<boolean>;
   otpVerification(email: string, receivedOTP: string): Promise<boolean>;
   resentOtp(email: string): Promise<boolean>;
   loginCompany(
@@ -43,7 +43,7 @@ export interface ICompanyServices {
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
 
-  searchUser (query: string): Promise<IUser[]>
+  searchUser(query: string): Promise<IUser[]>;
   setInterviewDetails(
     applicationId: string,
     interviewDetails: { interviewStatus: string; dateTime: Date }
@@ -53,6 +53,6 @@ export interface ICompanyServices {
       user_id: string;
       profileImage: string;
     }[]
-    >;
-  getUserProfile (user_id: string): Promise<any>
+  >;
+  getUserProfile(user_id: string): Promise<any>;
 }

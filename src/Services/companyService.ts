@@ -35,6 +35,7 @@ class CompanyServices implements ICompanyServices {
   private userRepository: IUserRepository;
   private companyData: ICompany | null = null;
   private fileService: FileService;
+  private tempCertificate: any = null;
 
   constructor(
     companyRepository: ICompanyRepository,
@@ -47,7 +48,10 @@ class CompanyServices implements ICompanyServices {
     this.fileService = new FileService();
   }
 
-  registerCompany = async (companyData: ICompany): Promise<boolean> => {
+  registerCompany = async (
+    companyData: ICompany,
+    certificate: any
+  ): Promise<boolean> => {
     try {
       const alreadyExists = await this.companyRepository.findByEmail(
         companyData.email
@@ -55,13 +59,19 @@ class CompanyServices implements ICompanyServices {
       if (alreadyExists) {
         throw new CustomError("Email already exists", HttpStatusCode.CONFLICT);
       }
+      const certificateUrl = await this.fileService.uploadFile(certificate);
+      console.log(certificateUrl);
 
       await redisClient.setEx(
         `${companyData.email}:data`,
         300,
         JSON.stringify(companyData)
       );
-      this.companyData = companyData;
+      console.log(certificate);
+
+      this.tempCertificate = certificate;
+      // this.companyData = companyData;
+      console.log(companyData);
 
       const otpSended = await otpSender(companyData.email);
       if (!otpSended) {
@@ -84,6 +94,23 @@ class CompanyServices implements ICompanyServices {
     try {
       const getOTP = await redisClient.get(`${email}:otp`);
       const getData = await redisClient.get(`${email}:data`);
+
+      if (!getOTP) {
+        throw new CustomError(
+          "OTP expired or doesn't exist",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+      if (getOTP !== receivedOTP) {
+        throw new CustomError("Incorrect OTP", HttpStatusCode.BAD_REQUEST);
+      }
+      if (!getData) {
+        throw new CustomError(
+          "Company data not found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
+
       const companyData: ICompany | null = getData ? JSON.parse(getData) : null;
 
       if (!getOTP) {
@@ -113,6 +140,18 @@ class CompanyServices implements ICompanyServices {
       const objectIdHex = hash.substring(0, 24);
       const obId = new ObjectId(objectIdHex);
       companyData.company_id = obId;
+
+      const certificateFile = this.tempCertificate;
+      console.log("certificateFileeee", certificateFile);
+
+      const certificateUrl = await this.fileService.uploadFile(certificateFile);
+      if (!certificateUrl) {
+        throw new CustomError(
+          "Failed to upload image",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
+      companyData.certificate = certificateUrl;
 
       const response = await this.companyRepository.register(companyData);
       if (!response) {

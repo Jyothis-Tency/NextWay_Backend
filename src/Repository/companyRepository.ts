@@ -246,7 +246,25 @@ class CompanyRepository implements ICompanyRepository {
     }
   };
 
-  
+  changeVerificationStatus = async (
+    company_id: string,
+    newStatus: string
+  ): Promise<boolean> => {
+    try {
+      const result = await this.company.updateOne(
+        { company_id: company_id },
+        { $set: { isVerified: newStatus } }
+      );
+      console.log("result in company repository", result);
+
+      return result.modifiedCount > 0;
+    } catch (error) {
+      throw new CustomError(
+        "Error fetching company by ID",
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default CompanyRepository;

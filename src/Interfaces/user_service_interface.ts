@@ -11,6 +11,7 @@ import {
 
 export interface IUserServices {
   registerUser(userData: IUser): Promise<boolean>;
+  handleGoogleAuth(token: string): Promise<Partial<ICleanUserData>>;
   otpVerification(email: string, receivedOTP: string): Promise<Boolean>;
   resentOtp(email: string): Promise<boolean>;
   loginUser(

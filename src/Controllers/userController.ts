@@ -37,6 +37,21 @@ class UserController {
       next(error);
     }
   };
+  handleGoogleAuth = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { credential } = req.body;
+      const result = await this.userService.handleGoogleAuth(credential);
+      res
+        .status(HttpStatusCode.OK)
+        .json({ message: "Google authentication successful", userData: result });
+    } catch (error) {
+      next(error);
+    }
+  };
 
   registerUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
