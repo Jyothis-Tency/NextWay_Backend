@@ -417,6 +417,11 @@ class SubscriptionServices implements ISubscriptionServices {
         );
       }
       await razorpayInstance.subscriptions.cancel(subscriptionId);
+      await this.subscriptionRepository.updateUserIsSubscribed(
+        subscriptionDetails.user_id.toString(),
+        false,
+        []
+      );
       // Update subscription status in the database
       // await this.subscriptionRepository.updateSubscriptionStatus(
       //   { subscriptionId: subscriptionId },
@@ -527,7 +532,7 @@ class SubscriptionServices implements ISubscriptionServices {
       //     HttpStatusCode.NOT_FOUND
       //   );
       // }
-      return result ;
+      return result;
     } catch (error: any) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(

@@ -55,4 +55,5 @@ export interface IUserServices {
   getSubscriptionPlans(
     plan_id: string
   ): Promise<ISubscriptionPlan | ISubscriptionPlan[]>;
+  getCompanyDetails(company_id: string): Promise<any>;
 }

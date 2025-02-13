@@ -68,7 +68,7 @@ class AdminServices implements IAdminServices {
         throw new CustomError("Invalid password", HttpStatusCode.UNAUTHORIZED);
       }
       const accessToken: string = createAccessToken(admin.id, "admin");
-      const refreshToken: string = createRefreshToken(email as string, "Admin");
+      const refreshToken: string = createRefreshToken(admin.id, "admin");
       const adminData = {
         _id: admin.id,
         email: admin.email,

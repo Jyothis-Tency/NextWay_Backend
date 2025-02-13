@@ -13,7 +13,7 @@ const createAccessToken = (
   _id: mongoose.Types.ObjectId | string,
   role: string
 ): string => {
-  return jwt.sign({ _id, role }, ACCESS_TOKEN_SECRET, { expiresIn: "30m" });
+  return jwt.sign({ _id, role }, ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
 };
 
 const createRefreshToken = (

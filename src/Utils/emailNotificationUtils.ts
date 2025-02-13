@@ -169,7 +169,14 @@ const sendNewJobNotification = async (
   location: string
 ): Promise<SendEmailResult[]> => {
   try {
-    const users = await User.find({ isBlocked: false }, { email: 1 });
+    const users = await User.find(
+      {
+        isBlocked: false,
+        isSubscribed: true,
+        subscriptionFeatures: { $in: ["google_notification"] },
+      },
+      { email: 1 }
+    );
     const userEmails = users.map((user) => user.email);
 
     return await sendEmail({

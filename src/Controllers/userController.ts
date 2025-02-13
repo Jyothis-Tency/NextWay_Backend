@@ -45,9 +45,10 @@ class UserController {
     try {
       const { credential } = req.body;
       const result = await this.userService.handleGoogleAuth(credential);
-      res
-        .status(HttpStatusCode.OK)
-        .json({ message: "Google authentication successful", userData: result });
+      res.status(HttpStatusCode.OK).json({
+        message: "Google authentication successful",
+        userData: result,
+      });
     } catch (error) {
       next(error);
     }
@@ -340,6 +341,28 @@ class UserController {
       }
     } catch (error: any) {
       console.log(`Error in emailValidation at userController : ${error}`);
+      next(error);
+    }
+  };
+  getCompanyDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const company_id = req.params.company_id;
+      const { companyProfile, imgBuffer } =
+        await this.userService.getCompanyDetails(company_id);
+      let imageBase64 = "";
+      if (imgBuffer) {
+        imageBase64 = `data:image/jpeg;base64,${imgBuffer.toString("base64")}`;
+      }
+      res.status(HttpStatusCode.OK).json({
+        status: true,
+        companyProfile,
+        image: imageBase64,
+      });
+    } catch (error) {
       next(error);
     }
   };

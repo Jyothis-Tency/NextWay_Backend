@@ -100,6 +100,7 @@ userRoutes
     userController.getAllCompanyProfileImages
   )
   .get("/all-companies", userController.fetchAllCompanyDetails)
-  .get("/get-subscription-plan", userAuth, userController.getSubscriptionPlan);
+  .get("/get-subscription-plan", userAuth, userController.getSubscriptionPlan)
+  .get("/get-company/:company_id", userAuth, userController.getCompanyDetails);
 
 export default userRoutes;

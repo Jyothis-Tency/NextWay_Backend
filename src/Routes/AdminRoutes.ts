@@ -13,6 +13,7 @@ import JobApplication from "../Models/jobApplicationModel";
 import SubscriptionDetails from "../Models/subscriptionDetails";
 import SubscriptionHistory from "../Models/SubscriptionHistory";
 import { adminAuth } from "../Middleware/adminAuth";
+import { adminRefreshTokenHandle } from "../Utils/adminRefreshTokenVerification";
 
 const companyRepository = new CompanyRepository(
   Company,
@@ -41,6 +42,7 @@ const adminRoutes = Router();
 
 adminRoutes
   .post("/login", adminController.loginAdmin)
+   .get("/auth/refresh", adminRefreshTokenHandle)
   .get("/all-users", adminAuth, adminController.fetchAllUserDetails)
   .get("/all-companies", adminAuth, adminController.fetchAllCompanyDetails)
   .post("/block-unblock-user", adminAuth, adminController.userBlockOrUnBlock)

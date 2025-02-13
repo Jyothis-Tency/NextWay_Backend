@@ -36,7 +36,8 @@ export const adminRefreshTokenHandle = async (
         return;
       }
 
-      const { _id, role } = decoded as jwt.JwtPayload
+      const { _id, role } = decoded as jwt.JwtPayload;
+      console.log(_id, role);
 
       // Check if admin exists and is not blocked
       const admin = await Admin.findOne({

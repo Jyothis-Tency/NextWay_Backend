@@ -389,6 +389,7 @@ class CompanyServices implements ICompanyServices {
       const result = await this.companyRepository.createOrUpdateJobPost(
         jobPostData
       );
+
       if (!result) {
         throw new CustomError(
           "Failed to create or update job post",
@@ -532,6 +533,7 @@ class CompanyServices implements ICompanyServices {
       const jobApplication = await this.companyRepository.getJobApplicationById(
         applicationId
       );
+
       if (!jobApplication) {
         throw new CustomError(
           "Application not found",
@@ -552,13 +554,18 @@ class CompanyServices implements ICompanyServices {
       if (!company) {
         throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
       }
-
-      sendApplicationStatusUpdate(
-        jobApplication.email,
-        company.name,
-        jobPost.title,
-        status
-      );
+      const user = await this.userRepository.findByEmail(jobApplication.email);
+      if (
+        user?.isSubscribed &&
+        user?.subscriptionFeatures.includes("google_notification")
+      ) {
+        sendApplicationStatusUpdate(
+          jobApplication.email,
+          company.name,
+          jobPost.title,
+          status
+        );
+      }
 
       emitApplicationStatusUpdate(
         {

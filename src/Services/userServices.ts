@@ -692,6 +692,29 @@ class UserServices implements IUserServices {
       throw error;
     }
   };
+
+  getCompanyDetails = async (company_id: string): Promise<any> => {
+    try {
+      const companyProfile = await this.companyRepository.getCompanyById(
+        company_id
+      );
+      if (!companyProfile) {
+        throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
+      }
+
+      let imgBuffer = null;
+      if (companyProfile.profileImage) {
+        imgBuffer = await this.fileService.getFile(companyProfile.profileImage);
+      }
+      return { companyProfile, imgBuffer };
+    } catch (error: any) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error fetching company profile: ${error.message}`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default UserServices;
