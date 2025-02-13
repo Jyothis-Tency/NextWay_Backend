@@ -144,6 +144,10 @@ class UserServices implements IUserServices {
         );
       }
       let user = await this.userRepository.findByGoogleId(payload.sub);
+      // if (user) {
+      //   user.googleId = payload.sub ? payload.sub : "";
+      // }
+      // user?.save();
       const uuidCode = uuidv4();
       const hash = crypto.createHash("sha256").update(uuidCode).digest("hex");
       const objectIdHex = hash.substring(0, 24);
@@ -659,6 +663,10 @@ class UserServices implements IUserServices {
   fetchAllCompanyDetails = async (): Promise<ICompany[] | null> => {
     try {
       const companiesData = await this.adminRepository.getAllCompanies();
+      const companies = companiesData?.filter(
+        (company) =>
+          company.isVerified === "accept" || company.isVerified === "pending"
+      );
       if (!companiesData) {
         // throw new Error("companies data not found");
         throw new CustomError(
@@ -666,7 +674,7 @@ class UserServices implements IUserServices {
           HttpStatusCode.NOT_FOUND
         );
       }
-      return companiesData;
+      return companies || null;
     } catch (error: any) {
       console.log(`Error in forgotPassword at userServices : ${error}`);
       throw new CustomError(

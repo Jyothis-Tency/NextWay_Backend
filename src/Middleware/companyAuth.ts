@@ -38,6 +38,11 @@ const companyAuth = async (req: Request, res: Response, next: NextFunction) => {
           .status(403)
           .json({ message: "Your account is blocked by Admin", role: role });
       }
+      if (company.isVerified==="reject") {
+        return res
+          .status(403)
+          .json({ message: "Your account has rejected by Admin", role: role });
+      }
 
       next();
     });

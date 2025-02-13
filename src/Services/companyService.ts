@@ -386,6 +386,15 @@ class CompanyServices implements ICompanyServices {
 
   createOrUpdateJobPost = async (jobPostData: IJobPost): Promise<boolean> => {
     try {
+      const company = await this.companyRepository.getCompanyById(
+        jobPostData.company_id
+      );
+      if (company?.isVerified === "pending") {
+        throw new CustomError(
+          "You can't post job until admin verifies your account",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
       const result = await this.companyRepository.createOrUpdateJobPost(
         jobPostData
       );
@@ -397,9 +406,6 @@ class CompanyServices implements ICompanyServices {
         );
       }
       if (!jobPostData._id) {
-        const company = await this.companyRepository.getCompanyById(
-          jobPostData.company_id
-        );
         if (company) {
           sendNewJobNotification(
             company.name,
