@@ -54,6 +54,9 @@ const jobApplication = new Schema<IJobApplication>(
       type: String,
       default: "",
     },
+    offerLetter: {
+      type:String
+    },
     companyName: {
       type: String,
       required: true,

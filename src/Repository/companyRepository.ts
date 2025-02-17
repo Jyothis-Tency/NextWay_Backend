@@ -188,12 +188,13 @@ class CompanyRepository implements ICompanyRepository {
   updateApplicationStatus = async (
     applicationId: string,
     status: string,
-    statusMessage: string
+    statusMessage: string,
+    offerLetter: string
   ): Promise<boolean> => {
     try {
       const result = await this.jobApplication.updateOne(
         { _id: applicationId },
-        { $set: { status, statusMessage } }
+        { $set: { status, statusMessage, offerLetter } }
       );
       return result.modifiedCount > 0;
     } catch (error) {

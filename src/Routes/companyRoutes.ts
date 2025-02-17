@@ -108,6 +108,7 @@ companyRoutes
   .put(
     "/update-application-status/:applicationId",
     companyAuth,
+    upload.single("offerLetter"),
     companyController.updateApplicationStatus
   )
 

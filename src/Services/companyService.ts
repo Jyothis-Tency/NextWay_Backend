@@ -533,7 +533,8 @@ class CompanyServices implements ICompanyServices {
   updateApplicationStatus = async (
     applicationId: string,
     status: string,
-    statusMessage: string
+    statusMessage: string,
+    offerLetter: any
   ): Promise<boolean> => {
     try {
       const jobApplication = await this.companyRepository.getJobApplicationById(
@@ -584,10 +585,17 @@ class CompanyServices implements ICompanyServices {
         jobApplication.user_id
       );
 
+      const offerLetterUrl = await this.fileService.uploadFile(offerLetter);
+      let offerLetterStr = "";
+      if (offerLetterUrl) {
+        offerLetterStr = offerLetterUrl;
+      }
+
       await this.companyRepository.updateApplicationStatus(
         applicationId,
         status,
-        statusMessage
+        statusMessage,
+        offerLetterStr
       );
       return true;
     } catch (error) {

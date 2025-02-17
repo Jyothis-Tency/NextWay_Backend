@@ -104,3 +104,4 @@ userRoutes
   .get("/get-company/:company_id", userAuth, userController.getCompanyDetails);
 
 export default userRoutes;
+

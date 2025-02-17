@@ -39,7 +39,8 @@ export interface ICompanyServices {
   updateApplicationStatus(
     applicationId: string,
     status: string,
-    statusMessage: string
+    statusMessage: string,
+    offerLetter: any
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
 

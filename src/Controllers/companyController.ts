@@ -314,10 +314,12 @@ class CompanyController {
     try {
       const { applicationId } = req.params;
       const { status, statusMessage } = req.body;
+      const offerLetter = req.file
       await this.companyService.updateApplicationStatus(
         applicationId,
         status,
-        statusMessage
+        statusMessage,
+        offerLetter
       );
       res.status(HttpStatusCode.OK).json({
         status: true,

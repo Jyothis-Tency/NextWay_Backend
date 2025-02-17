@@ -594,6 +594,21 @@ class UserServices implements IUserServices {
       const applications = await this.userRepository.getJobApplicationsByUserId(
         user_id
       );
+
+     await Promise.all(
+        applications
+          .filter((application) => application.offerLetter) // Filter companys with profile images
+          .map(async (application) => {
+            const imageURL = await this.fileService.getFile(
+              application.offerLetter as string
+            );
+
+            application.offerLetter = `data:application/pdf;base64,${imageURL.toString(
+              "base64"
+            )}`;
+          })
+      );
+
       console.log(applications);
       // if (!applications || applications.length === 0) {
       //   throw new CustomError(

@@ -21,7 +21,8 @@ export interface ICompanyRepository {
   updateApplicationStatus(
     applicationId: string,
     status: string,
-    statusMessage: string
+    statusMessage: string,
+    offerLetter: string
   ): Promise<boolean>;
   getJobApplicationById(applicationId: string): Promise<IJobApplication | null>;
   searchByCompanyName(name: string): Promise<ICompany[]>;
@@ -29,10 +30,10 @@ export interface ICompanyRepository {
     applicationId: string,
     interview: { interviewStatus: string; dateTime: Date }
   ): Promise<boolean>;
-  changeVerificationStatus (
+  changeVerificationStatus(
     company_id: string,
     newStatus: string
-  ): Promise<boolean>
+  ): Promise<boolean>;
   // getAllJobPost(userId: string): Promise<IJobPost[]>;
   // findByTitle(title: string): Promise<IJobPost | null>;
   // findCompany(name: string): Promise<ICompany | null>;

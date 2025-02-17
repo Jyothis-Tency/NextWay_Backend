@@ -147,6 +147,7 @@ export interface IJobApplication extends Document {
   coverLetter?: string; // Optional cover letter text
   status: "Pending" | "Viewed" | "Shortlisted" | "Rejected" | "Hired";
   statusMessage?: string;
+  offerLetter?: string;
   interview?: {
     interviewStatus: "scheduled" | "over" | "canceled" | "postponed";
     dateTime?: Date;
