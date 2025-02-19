@@ -19,6 +19,8 @@ import JobApplication from "../Models/jobApplicationModel";
 import SubscriptionDetails from "../Models/subscriptionDetails";
 import SubscriptionHistory from "../Models/SubscriptionHistory";
 import Admin from "../Models/AdminModel";
+import dotenv from "dotenv";
+dotenv.config();
 const companyRepository = new CompanyRepository(
   CompanyModel,
   JobPost,
@@ -28,8 +30,7 @@ const adminRepository = new AdminRepository(
   Admin,
   CompanyModel,
   User,
-  SubscriptionPlan,
-
+  SubscriptionPlan
 );
 const userRepository = new UserRepository(
   User,
@@ -58,7 +59,7 @@ interface ConnectedClient {
 export const initializeSocket = (server: http.Server) => {
   io = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: process.env.SOCKET_CLIENT_URL as string,
       methods: ["GET", "POST"],
       credentials: true,
     },

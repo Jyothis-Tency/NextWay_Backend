@@ -34,7 +34,7 @@ class AdminController {
       res
         .status(HttpStatusCode.OK)
         .json({ adminData: serviceResponse.adminData });
-    } catch (error: any) {
+    } catch (error: unknown) {
       next(error);
     }
   };
@@ -55,7 +55,7 @@ class AdminController {
           .status(HttpStatusCode.OK)
           .json({ status: true, userData: userData });
       }
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   };
@@ -72,7 +72,7 @@ class AdminController {
           .status(HttpStatusCode.OK)
           .json({ status: true, companyData: companyData });
       }
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   };
@@ -90,7 +90,7 @@ class AdminController {
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true, userData: result });
       }
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   };
@@ -110,7 +110,7 @@ class AdminController {
           .status(HttpStatusCode.OK)
           .json({ status: true, companyData: result });
       }
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   };
@@ -128,7 +128,7 @@ class AdminController {
       if (result) {
         res.status(HttpStatusCode.OK).json({ planData: result });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(`Error in emailValidation at userController : ${error}`);
       next(error);
     }
@@ -148,7 +148,7 @@ class AdminController {
       if (result) {
         res.status(HttpStatusCode.OK).json({ status: true });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(`Error in emailValidation at userController : ${error}`);
       next(error);
     }
@@ -170,7 +170,7 @@ class AdminController {
           .status(HttpStatusCode.OK)
           .json({ status: true, message: "Plan updated Successfully" });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(`Error in emailValidation at userController : ${error}`);
       next(error);
     }

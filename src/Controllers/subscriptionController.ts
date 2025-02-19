@@ -40,7 +40,7 @@ class SubscriptionController {
       res
         .status(HttpStatusCode.OK)
         .json({ success: true, subscriptionId: result });
-    } catch (error: any) {
+    } catch (error) {
       console.log(error);
       next(error);
     }
@@ -116,7 +116,7 @@ class SubscriptionController {
       if (result) {
         res.status(HttpStatusCode.OK).json({ planData: result });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(`Error in emailValidation at userController : ${error}`);
       next(error);
     }

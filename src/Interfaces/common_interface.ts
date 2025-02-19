@@ -229,6 +229,41 @@ export interface IUploadFileRequest {
   file: Express.Multer.File;
 }
 
+interface OrderNotes {
+  userId: string;
+  planId: string;
+}
+
+interface OrderEntity {
+  id: string;
+  notes: OrderNotes;
+}
+
+interface PaymentEntity {
+  id: string;
+  order_id: string;
+}
+
+interface SubscriptionEntity {
+  id: string;
+  payment_id: string;
+  notes: OrderNotes;
+  status: string;
+}
+
+export interface RazorpayPayload {
+  order: {
+    entity: OrderEntity;
+  };
+  payment: {
+    entity: PaymentEntity;
+  };
+  subscription: {
+    
+    entity: SubscriptionEntity;
+  };
+}
+
 // export interface ICompany extends Document {
 //   user_id: string;
 //   name: string; // Company name

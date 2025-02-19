@@ -26,18 +26,22 @@ export interface IUserServices {
   forgotPasswordOTP(email: string, receivedOTP: string): Promise<Boolean>;
   forgotPasswordReset(email: string, password: string): Promise<Boolean>;
   getAllJobPosts(): Promise<{ jobPosts: IJobPost[]; companies: ICompany[] }>;
-  // getAllJobPostService(): Promise<any>;
-  // getAllCompanyService(): Promise<any>;
-  getUserProfile(userId: string): Promise<any>;
+
+  getUserProfile(
+    userId: string
+  ): Promise<{ userProfile: IUser; imgBuffer: Buffer | null }>;
   editUserDetailsService(
     user_id: string,
     userData: Partial<IUser>
   ): Promise<IUser>;
   newJobApplication(
     applicationData: IJobApplication,
-    resumeFile: any
+    resumeFile?: Express.Multer.File
   ): Promise<IJobApplication>;
-  updateProfileImg(user_id: string, image: any): Promise<boolean>;
+  updateProfileImg(
+    user_id: string,
+    image?: Express.Multer.File
+  ): Promise<boolean>;
 
   getSubscriptionHistory(user_id: string): Promise<ISubscriptionDetails[]>;
   getCurrentSubscriptionDetail(
@@ -55,5 +59,7 @@ export interface IUserServices {
   getSubscriptionPlans(
     plan_id: string
   ): Promise<ISubscriptionPlan | ISubscriptionPlan[]>;
-  getCompanyDetails(company_id: string): Promise<any>;
+  getCompanyDetails(
+    company_id: string
+  ): Promise<{ companyProfile: ICompany; imgBuffer: Buffer | null }>;
 }

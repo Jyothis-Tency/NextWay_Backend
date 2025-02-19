@@ -1,5 +1,7 @@
 import redisClient from "./redisUtils";
 import sendOTPasMail from "../Config/OTP_Config";
+import CustomError from "./customError";
+import HttpStatusCode from "../Enums/httpStatusCodes";
 
 const otpSender = async (email: string): Promise<boolean> => {
   try {
@@ -13,8 +15,14 @@ const otpSender = async (email: string): Promise<boolean> => {
       throw new Error("email not send");
     }
     return true;
-  } catch (error: any) {
-    throw error;
+  } catch (error: unknown) {
+    if (error instanceof CustomError) throw error;
+    throw new CustomError(
+      `Error in otpUtils otpSender: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      HttpStatusCode.INTERNAL_SERVER_ERROR
+    );
   }
 };
 

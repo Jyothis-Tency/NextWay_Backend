@@ -13,11 +13,10 @@ import CustomError from "../Utils/customError";
 import dotenv from "dotenv";
 import crypto from "crypto";
 import SubscriptionPeriods from "../Enums/SubscriptionPeriods";
-
+import { ObjectId } from "mongodb";
 import { getSubscriptionRoomName } from "../Config/socketConfig";
 import { Server } from "socket.io";
-
-dotenv.config();
+import { RazorpayPayload } from "../Interfaces/common_interface";
 
 class SubscriptionServices implements ISubscriptionServices {
   private subscriptionRepository: ISubscriptionRepository;
@@ -64,10 +63,12 @@ class SubscriptionServices implements ISubscriptionServices {
         amount: order.amount,
         currency: order.currency,
       };
-    } catch (error: any) {
-      console.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error creating subscription details",
+        `Error in subscription initializeSubscription: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -92,7 +93,7 @@ class SubscriptionServices implements ISubscriptionServices {
       const secret = process.env.RAZORPAY_KEY_SECRET;
       if (!secret) {
         throw new CustomError(
-          "secret not contains any value",
+          "secret not contains value",
           HttpStatusCode.NOT_FOUND
         );
       }
@@ -139,10 +140,12 @@ class SubscriptionServices implements ISubscriptionServices {
         );
 
       return "Subscription created successfully";
-    } catch (error: any) {
-      console.error("Detailed error:", error);
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error verifying subscription details",
+        `Error in subscription verifyPayment: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -152,9 +155,12 @@ class SubscriptionServices implements ISubscriptionServices {
     try {
       console.log("getAllSubscriptions subscriptionService");
       return await this.subscriptionRepository.findAllSubscriptions();
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching subscription details",
+        `Error in subscription getAllSubscriptions: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -162,9 +168,9 @@ class SubscriptionServices implements ISubscriptionServices {
 
   webHookService = async (
     event: string,
-    payload: any,
+    payload: RazorpayPayload,
     signature: string,
-    body: any
+    body: string
   ): Promise<boolean> => {
     try {
       console.log("WebhookService");
@@ -172,7 +178,7 @@ class SubscriptionServices implements ISubscriptionServices {
       const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
       if (!secret) {
         throw new CustomError(
-          "secret not contains any value",
+          "secret not contains value",
           HttpStatusCode.NOT_FOUND
         );
       }
@@ -214,17 +220,19 @@ class SubscriptionServices implements ISubscriptionServices {
       }
 
       return true;
-    } catch (error: any) {
-      console.error("Error processing webhook:", error.message);
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error processing webhook",
+        `Error in subscription webHookService: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
   // New methods to handle webhook events
-  private handleOrderPaid = async (payload: any) => {
+  private handleOrderPaid = async (payload: RazorpayPayload) => {
     console.log("handleOrderPaid subscriptionService");
 
     const order = payload.order.entity;
@@ -241,7 +249,7 @@ class SubscriptionServices implements ISubscriptionServices {
       planId
     );
 
-    // Deactivate any current subscription
+    // Deactivate current subscription
     await this.subscriptionRepository.updateSubscriptionStatus(
       { user_id: userId, isCurrent: true },
       { isCurrent: false }
@@ -263,8 +271,8 @@ class SubscriptionServices implements ISubscriptionServices {
 
     const newSubscription =
       await this.subscriptionRepository.createSubscriptionDetails({
-        user_id: userId,
-        plan_id: planId || "",
+        user_id: new ObjectId(userId),
+        plan_id: new ObjectId(planId) || "",
         planName: plan.name || "Unknown Plan",
         startDate: new Date(),
         period: plan.period,
@@ -278,8 +286,8 @@ class SubscriptionServices implements ISubscriptionServices {
       });
 
     await this.subscriptionRepository.createSubscriptionHistory({
-      user_id: userId,
-      plan_id: planId,
+      user_id: new ObjectId(userId),
+      plan_id: new ObjectId(planId),
       planName: plan.name,
       createdType: "new",
       period: plan.period,
@@ -300,7 +308,7 @@ class SubscriptionServices implements ISubscriptionServices {
     );
   };
 
-  private handlePaymentCaptured = async (payload: any) => {
+  private handlePaymentCaptured = async (payload: RazorpayPayload) => {
     console.log("handlePaymentCaptured subscriptionService");
     const { payment } = payload;
 
@@ -317,29 +325,31 @@ class SubscriptionServices implements ISubscriptionServices {
     const { userId, planId } = order.notes; // Destructure safely
     // Update subscription status if it exists
     await this.subscriptionRepository.updateSubscriptionStatus(
-      { paymentId: payment.id },
+      { paymentId: payment.entity.id },
       { status: "active" }
     );
   };
 
-  private handlePaymentFailed = async (payload: any) => {
+  private handlePaymentFailed = async (payload: RazorpayPayload) => {
     console.log("handlePaymentFailed subscriptionService");
     const { payment } = payload;
 
     // Update subscription status
     await this.subscriptionRepository.updateSubscriptionStatus(
-      { paymentId: payment.id },
+      { paymentId: payment.entity.id },
       { status: "failed", isCurrent: false }
     );
   };
 
-  private handleSubscriptionCharged = async (payload: any) => {
+  private handleSubscriptionCharged = async (payload: RazorpayPayload) => {
     console.log("handleSubscriptionCharged subscriptionService");
     const { subscription } = payload;
 
     // Update subscription end date
     const subscriptionDetails =
-      await this.subscriptionRepository.findSubscription(subscription.id);
+      await this.subscriptionRepository.findSubscription(
+        subscription.entity.id
+      );
 
     if (subscriptionDetails) {
       const plan = await this.subscriptionRepository.findSubscriptionPlanById(
@@ -365,12 +375,12 @@ class SubscriptionServices implements ISubscriptionServices {
       );
 
       subscriptionDetails.endDate = newEndDate;
-      subscriptionDetails.paymentId = subscription.payment_id; // Update with new payment ID
+      subscriptionDetails.paymentId = subscription.entity.payment_id||""; // Update with new payment ID
       await this.subscriptionRepository.updateSubscriptionStatus(
-        { subscriptionId: subscriptionDetails.subscriptionId },
+        { subscriptionId: subscriptionDetails.subscriptionId || "" },
         {
           endDate: subscriptionDetails.endDate,
-          paymentId: subscription.payment_id,
+          paymentId: subscription.entity.payment_id,
         }
       );
 
@@ -392,11 +402,13 @@ class SubscriptionServices implements ISubscriptionServices {
         plan.features
       );
 
-      if (subscription.notes && subscription.notes.userId) {
-        const roomName = getSubscriptionRoomName(subscription.notes.userId);
+      if (subscription.entity.notes && subscription.entity.notes.userId) {
+        const roomName = getSubscriptionRoomName(
+          subscription.entity.notes.userId
+        );
         this.io.to(roomName).emit("subscription:updated", {
           type: "subscription_renewed",
-          subscriptionId: subscription.id,
+          subscriptionId: subscription.entity.id,
           newEndDate: newEndDate,
         });
       }
@@ -434,15 +446,18 @@ class SubscriptionServices implements ISubscriptionServices {
       //   []
       // );
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error cancelling subscription details",
+        `Error in subscription cancelSubscription: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
-  private handleSubscriptionCancelled = async (payload: any) => {
+  private handleSubscriptionCancelled = async (payload: RazorpayPayload) => {
     console.log("handleSubscriptionCancelled subscriptionService");
     const { subscription } = payload;
     console.log("subscription payload", subscription);
@@ -458,17 +473,17 @@ class SubscriptionServices implements ISubscriptionServices {
       );
     const roomName = getSubscriptionRoomName(subscription.entity.notes.userId);
     await this.subscriptionRepository.updateUserIsSubscribed(
-      subscription.entity.notes.user_id,
+      subscription.entity.notes.userId,
       false,
       []
     );
     this.io.to(roomName).emit("subscription:updated", {
       type: "subscription_cancelled",
-      subscriptionId: subscription.id,
+      subscriptionId: subscription.entity.id,
     });
   };
 
-  private handlePaymentAuthorized = async (payload: any) => {
+  private handlePaymentAuthorized = async (payload: RazorpayPayload) => {
     console.log("handlePaymentAuthorized subscriptionService");
     const { payment } = payload;
     // Implement your logic for handling payment authorization
@@ -490,8 +505,14 @@ class SubscriptionServices implements ISubscriptionServices {
         );
       }
       return result;
-    } catch (error) {
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in subscription getSubscriptionPlans: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -509,10 +530,12 @@ class SubscriptionServices implements ISubscriptionServices {
         );
       }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching subscription history: ${error.message}`,
+        `Error in subscription getSubscriptionHistory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -533,10 +556,12 @@ class SubscriptionServices implements ISubscriptionServices {
       //   );
       // }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching current subscription: ${error.message}`,
+        `Error in subscription getCurrentSubscriptionDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

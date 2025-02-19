@@ -32,30 +32,42 @@ class AdminRepository implements IAdminRepository {
   findAdmin = async (email: string): Promise<IAdmin | null> => {
     try {
       return await this.admin.findOne({ email: email });
-    } catch (error) {
-      console.log(`Error in findAdmin at adminRepository : ${error}`);
-
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin findAdmin: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
   getAllUsers = async (): Promise<IUser[] | null> => {
     try {
       return await this.user.find();
-    } catch (error) {
-      console.log(`Error in findByEmail at userRepository : ${error}`);
-
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin getAllUsers: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
   getAllCompanies = async (): Promise<ICompany[] | null> => {
     try {
       return await this.company.find();
-    } catch (error) {
-      console.log(`Error in findByEmail at userRepository : ${error}`);
-
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin getAllCompanies: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -78,9 +90,14 @@ class AdminRepository implements IAdminRepository {
       await company.save();
 
       return company;
-    } catch (error) {
-      console.log(`Error in toggleCompanyBlock at companyRepository: ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin toggleCompanyBlock: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -100,9 +117,14 @@ class AdminRepository implements IAdminRepository {
       await user.save();
 
       return user;
-    } catch (error) {
-      console.log(`Error in toggleCompanyBlock at companyRepository: ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin toggleUserBlock: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -125,9 +147,14 @@ class AdminRepository implements IAdminRepository {
       }
 
       return result;
-    } catch (error) {
-      console.log(`Error in getSubscriptionPlan at adminRepository: ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin getSubscriptionPlans: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -150,11 +177,14 @@ class AdminRepository implements IAdminRepository {
       let result = null;
       result = await this.subscriptionPlan.create(planData);
       return result;
-    } catch (error) {
-      console.log(
-        `Error in createSubscriptionPlan at adminRepository: ${error}`
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin createSubscriptionPlan: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
       );
-      throw error;
     }
   };
 
@@ -183,12 +213,16 @@ class AdminRepository implements IAdminRepository {
         );
       }
       return result;
-    } catch (error) {
-      console.log(`Error in editSubscriptionPlan at adminRepository: ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin editSubscriptionPlan: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
-  
 }
 
 export default AdminRepository;

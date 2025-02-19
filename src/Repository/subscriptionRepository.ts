@@ -34,9 +34,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
   ): Promise<ISubscriptionPlan | null> => {
     try {
       return await this.subscriptionPlan.findById(planId);
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching subscription plan by ID",
+        `Error in subscription findSubscriptionPlanById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -47,17 +50,20 @@ class SubscriptionRepository implements ISubscriptionRepository {
   ): Promise<ISubscriptionDetails> => {
     try {
       return await this.subscriptionDetails.create(details);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error creating subscription details",
+        `Error in subscription createSubscriptionDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
   updateSubscriptionStatus = async (
-    matchCriteria: Record<string, any>,
-    updateValues: Record<string, any>
+    matchCriteria: Record<string, string | boolean>,
+    updateValues: Record<string, string | boolean | Date>
   ): Promise<UpdateResult> => {
     try {
       return await this.subscriptionDetails.updateMany(
@@ -65,9 +71,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
         updateValues,
         { upsert: false } // This is to prevent creating a new document if it doesn't exist
       );
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error updating subscription status",
+        `Error in subscription updateSubscriptionStatus: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -88,9 +97,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
         price: details.price,
       };
       return await this.subscriptionHistory.create(historyDetails);
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error creating subscription history",
+        `Error in subscription createSubscriptionHistory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -103,9 +115,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
       return await this.subscriptionDetails.findOne({
         subscriptionId: subscriptionId,
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching current subscription by user ID",
+        `Error in subscription findSubscription: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -114,9 +129,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
   findAllSubscriptions = async (): Promise<ISubscriptionDetails[]> => {
     try {
       return await this.subscriptionDetails.find();
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching all subscriptions",
+        `Error in subscription findAllSubscriptions: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -132,9 +150,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
         { $set: { isBlocked } }
       );
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching chat history",
+        `Error in subscription toggleSubscriptionPlanBlock: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -151,9 +172,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
         { $set: { isSubscribed: isSubscribed, subscriptionFeatures: features } }
       );
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching chat history",
+        `Error in subscription updateUserIsSubscribed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -178,9 +202,14 @@ class SubscriptionRepository implements ISubscriptionRepository {
       }
 
       return result;
-    } catch (error) {
-      console.log(`Error in getSubscriptionPlan at adminRepository: ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in subscription getSubscriptionPlans: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -194,9 +223,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
         })
         .sort({ createdAt: -1 });
       return subscriptionHistory;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching subscription history",
+        `Error in subscription getSubscriptionHistory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -211,9 +243,12 @@ class SubscriptionRepository implements ISubscriptionRepository {
         isCurrent: true,
       });
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching current subscription",
+        `Error in subscription getCurrentSubscriptionDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

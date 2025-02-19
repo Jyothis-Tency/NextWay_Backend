@@ -3,6 +3,7 @@ import {
   ISubscriptionPlan,
   IOrderResponse,
   ISubscriptionHistory,
+  RazorpayPayload
 } from "./common_interface";
 
 export interface ISubscriptionServices {
@@ -23,9 +24,9 @@ export interface ISubscriptionServices {
 
   webHookService(
     event: string,
-    payload: any,
+    payload: RazorpayPayload,
     signature: string,
-    body: any
+    body: string
   ): Promise<boolean>;
   getSubscriptionPlans(
     plan_id: string

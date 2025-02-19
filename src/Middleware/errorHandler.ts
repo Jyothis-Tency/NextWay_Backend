@@ -3,13 +3,13 @@ import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 
 const errorHandler: ErrorRequestHandler = (
-  err: any,
+  err: CustomError,
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-    console.log("errorHandling");
-    
+  console.log("errorHandling");
+
   console.error(err.stack);
 
   if (err instanceof CustomError) {
@@ -24,3 +24,5 @@ const errorHandler: ErrorRequestHandler = (
 };
 
 export default errorHandler;
+
+

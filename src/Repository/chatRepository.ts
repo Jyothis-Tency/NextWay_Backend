@@ -35,7 +35,9 @@ class ChatRepository implements IChatRepository {
 
       // Map company details to chats
       const enrichedChats = chats.map((chat) => {
-        const company = companies.find((c) => c.company_id.toString() === chat.company_id.toString());
+        const company = companies.find(
+          (c) => c.company_id.toString() === chat.company_id.toString()
+        );
         const lastMessage = chat.messages[chat.messages.length - 1];
 
         return {
@@ -52,10 +54,12 @@ class ChatRepository implements IChatRepository {
 
       console.log("Enriched user chats:", enrichedChats);
       return enrichedChats;
-    } catch (error) {
-      console.error("Error in findUserChatHistory:", error);
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching chat history",
+        `Error in chat findUserChatHistory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -76,7 +80,9 @@ class ChatRepository implements IChatRepository {
 
       // Map user details to chats
       const enrichedChats = chats.map((chat) => {
-        const user = users.find((u) => u.user_id.toString() === chat.user_id.toString());
+        const user = users.find(
+          (u) => u.user_id.toString() === chat.user_id.toString()
+        );
         const lastMessage = chat.messages[chat.messages.length - 1];
 
         return {
@@ -93,10 +99,12 @@ class ChatRepository implements IChatRepository {
 
       console.log("Enriched company chats:", enrichedChats);
       return enrichedChats;
-    } catch (error) {
-      console.error("Error in findCompanyChatHistory:", error);
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching chat history",
+        `Error in chat findCompanyChatHistory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -112,9 +120,12 @@ class ChatRepository implements IChatRepository {
       console.log("saveMessages", chat.messages[chat.messages.length - 1]);
 
       return chat.messages[chat.messages.length - 1]; // Return the last message
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error saving message",
+        `Error in chat saveMessage: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -123,11 +134,12 @@ class ChatRepository implements IChatRepository {
   createChat = async (chatData: IChat): Promise<IChat> => {
     try {
       return await this.chatModel.create(chatData);
-    } catch (error: any) {
-      console.log(error.message);
-
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error creating chat",
+        `Error in chat createChat: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

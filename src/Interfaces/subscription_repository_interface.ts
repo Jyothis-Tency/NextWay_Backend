@@ -11,8 +11,8 @@ export interface ISubscriptionRepository {
     details: ISubscriptionDetails
   ): Promise<ISubscriptionDetails>;
   updateSubscriptionStatus(
-    matchCriteria: Record<string, any>,
-    updateValues: Record<string, any>
+    matchCriteria: Record<string, string | boolean>,
+    updateValues: Record<string, string | boolean | Date>
   ): Promise<UpdateResult>;
   createSubscriptionHistory(
     details: ISubscriptionHistory

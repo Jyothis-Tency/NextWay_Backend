@@ -11,8 +11,6 @@ import {
 } from "../Interfaces/common_interface";
 import { ObjectId } from "mongodb";
 import { Types } from "mongoose";
-import Razorpay from "razorpay";
-import razorpayInstance from "../Config/razorpayConfig";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 
@@ -49,9 +47,12 @@ class UserRepository implements IUserRepository {
     try {
       const user = await this.user.findOne({ email });
       return user;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error finding user by email",
+        `Error in user findBYEmail: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -61,9 +62,12 @@ class UserRepository implements IUserRepository {
     try {
       const user = await this.user.findOne({ googleId });
       return user;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error finding user by email",
+        `Error in user findByGoogleId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -85,11 +89,12 @@ class UserRepository implements IUserRepository {
     try {
       const newUser = await this.user.create(userData);
       return newUser;
-    } catch (error) {
-      console.error(error);
-
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error registering user",
+        `Error in user register: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -106,9 +111,12 @@ class UserRepository implements IUserRepository {
         { new: true }
       );
       return updatedUser;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error updating password",
+        `Error in user updatePassword: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -120,9 +128,12 @@ class UserRepository implements IUserRepository {
         .findOne({ user_id: user_id })
         .lean()) as IUser | null;
       return user;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching user by ID",
+        `Error in user getUserById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -139,9 +150,12 @@ class UserRepository implements IUserRepository {
         { new: true }
       );
       return updatedUser;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error updating user",
+        `Error in user putUserById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -153,9 +167,12 @@ class UserRepository implements IUserRepository {
         company_id: { $in: company_id },
       });
       return companies;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching companies",
+        `Error in user getAllCompaniesByIds: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -170,9 +187,12 @@ class UserRepository implements IUserRepository {
         { $push: { applicants: applicationData.user_id } }
       );
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error creating job application",
+        `Error in user postJobApplication: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -185,9 +205,12 @@ class UserRepository implements IUserRepository {
         { $set: { profileImage: url } }
       );
       return result.modifiedCount > 0;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error updating profile image",
+        `Error in user postProfileImg: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -203,9 +226,12 @@ class UserRepository implements IUserRepository {
         })
         .sort({ createdAt: -1 });
       return subscriptionHistory;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching subscription history",
+        `Error in user getSubscriptionHistory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -220,9 +246,12 @@ class UserRepository implements IUserRepository {
         isCurrent: true,
       });
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching current subscription",
+        `Error in user getCurrentSubscriptionDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -233,9 +262,12 @@ class UserRepository implements IUserRepository {
   ): Promise<IJobApplication[]> => {
     try {
       return await this.jobApplication.find({ user_id: user_id });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching job applications",
+        `Error in user getJobApplicationsByUserId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -248,9 +280,12 @@ class UserRepository implements IUserRepository {
       });
       console.log(result);
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error searching for companies",
+        `Error in user searchByUserName: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -260,9 +295,12 @@ class UserRepository implements IUserRepository {
     try {
       const result = await this.user.find({}).select("profileImage");
       return result.map((user) => user.profileImage);
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching user images",
+        `Error in user getAllUserImages: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

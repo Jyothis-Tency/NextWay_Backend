@@ -42,10 +42,14 @@ export interface IAdminServices {
     jobPosts: IJobPost[];
     companies: ICompany[];
   }>;
-  getCompanyDetails(company_id: string): Promise<any>;
-  getUserDetails(user_id: string): Promise<any>;
-   changeVerificationStatus  (
+  getCompanyDetails(
+    company_id: string
+  ): Promise<{ companyProfile: ICompany; imgBuffer: Buffer | null }>;
+  getUserDetails(
+    user_id: string
+  ): Promise<{ userProfile: IUser; imgBuffer: Buffer | null }>;
+  changeVerificationStatus(
     company_id: string,
     newStatus: string
-  ): Promise<string | null>
+  ): Promise<string | null>;
 }

@@ -77,9 +77,14 @@ class AdminServices implements IAdminServices {
         refreshToken: refreshToken,
       };
       return { adminData, accessToken, refreshToken };
-    } catch (error: any) {
-      console.error("Error during admin login services:", error.message);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in loginAdmin: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -90,9 +95,14 @@ class AdminServices implements IAdminServices {
         throw new Error("users data not found");
       }
       return usersData;
-    } catch (error) {
-      console.log(`Error in forgotPassword at userServices : ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin fetchAllUserDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
   fetchAllCompanyDetails = async (): Promise<ICompany[] | null> => {
@@ -102,9 +112,14 @@ class AdminServices implements IAdminServices {
         throw new Error("companies data not found");
       }
       return companiesData;
-    } catch (error) {
-      console.log(`Error in forgotPassword at userServices : ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin fetchAllCompanyDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -115,9 +130,14 @@ class AdminServices implements IAdminServices {
         throw new Error("user not found");
       }
       return result;
-    } catch (error) {
-      console.log(`Error in forgotPassword at userServices : ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin userBlockOrUnblock: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
   companyBlockOrUnBlock = async (
@@ -130,9 +150,14 @@ class AdminServices implements IAdminServices {
         throw new Error("company not found");
       }
       return result;
-    } catch (error) {
-      console.log(`Error in forgotPassword at userServices : ${error}`);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin companyBlockOrUnBlock: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -148,8 +173,14 @@ class AdminServices implements IAdminServices {
         );
       }
       return result;
-    } catch (error) {
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin getSubscriptionPlans: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
   createNewSubscriptionPlan = async (
@@ -211,9 +242,14 @@ class AdminServices implements IAdminServices {
         );
       }
       return true;
-    } catch (error) {
-      console.error("Error in createNewSubscriptionPlan:", error);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin createNewSubscriptionPlan: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -276,9 +312,14 @@ class AdminServices implements IAdminServices {
       // }
 
       return true;
-    } catch (error) {
-      console.error("Error in editSubscriptionPlan:", error);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in admin editSubscriptionPlan: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
@@ -312,9 +353,12 @@ class AdminServices implements IAdminServices {
       );
 
       return userImagesWithId;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching company profile images: ${error.message}`,
+        `Error in admin getAllUserProfileImages: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -350,9 +394,12 @@ class AdminServices implements IAdminServices {
       );
 
       return companyImagesWithId;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching user profile images: ${error.message}`,
+        `Error in admin getAllCOmpanyProfileImages: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -379,16 +426,20 @@ class AdminServices implements IAdminServices {
       }
 
       return { jobPosts, companies };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job posts: ${error.message}`,
+        `Error in admin getAllJobPosts: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
-  getCompanyDetails = async (company_id: string): Promise<any> => {
+  getCompanyDetails = async (
+    company_id: string
+  ): Promise<{ companyProfile: ICompany; imgBuffer: Buffer | null }> => {
     try {
       const companyProfile = await this.companyRepository.getCompanyById(
         company_id
@@ -415,16 +466,20 @@ class AdminServices implements IAdminServices {
       }
       companyProfile.certificate = certificateBase64;
       return { companyProfile, imgBuffer };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching company profile: ${error.message}`,
+        `Error in admin getCompanyDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
-  getUserDetails = async (user_id: string): Promise<any> => {
+  getUserDetails = async (
+    user_id: string
+  ): Promise<{ userProfile: IUser; imgBuffer: Buffer | null }> => {
     try {
       const userProfile = await this.userRepository.getUserById(user_id);
       if (!userProfile) {
@@ -436,10 +491,12 @@ class AdminServices implements IAdminServices {
         imgBuffer = await this.fileService.getFile(userProfile.profileImage);
       }
       return { userProfile, imgBuffer };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching user profile: ${error.message}`,
+        `Error in admin getUserDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -458,9 +515,12 @@ class AdminServices implements IAdminServices {
         throw new CustomError("Company not found", HttpStatusCode.NOT_FOUND);
       }
       return newStatus;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching company by ID",
+        `Error in admin changeVerificationStatus: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

@@ -35,7 +35,7 @@ class CompanyServices implements ICompanyServices {
   private userRepository: IUserRepository;
   private companyData: ICompany | null = null;
   private fileService: FileService;
-  private tempCertificate: any = null;
+  private tempCertificate: Express.Multer.File | null = null;
 
   constructor(
     companyRepository: ICompanyRepository,
@@ -50,7 +50,7 @@ class CompanyServices implements ICompanyServices {
 
   registerCompany = async (
     companyData: ICompany,
-    certificate: any
+    certificate?: Express.Multer.File
   ): Promise<boolean> => {
     try {
       const alreadyExists = await this.companyRepository.findByEmail(
@@ -58,6 +58,9 @@ class CompanyServices implements ICompanyServices {
       );
       if (alreadyExists) {
         throw new CustomError("Email already exists", HttpStatusCode.CONFLICT);
+      }
+      if (!certificate) {
+        throw new CustomError("Certificate not found", HttpStatusCode.NOT_FOUND);
       }
       const certificateUrl = await this.fileService.uploadFile(certificate);
       console.log(certificateUrl);
@@ -78,10 +81,12 @@ class CompanyServices implements ICompanyServices {
         throw new CustomError("Failed to send OTP", HttpStatusCode.BAD_REQUEST);
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in company registration: ${error.message}`,
+        `Error in company registration: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -141,9 +146,15 @@ class CompanyServices implements ICompanyServices {
       const obId = new ObjectId(objectIdHex);
       companyData.company_id = obId;
 
-      const certificateFile = this.tempCertificate;
+      const certificateFile: Express.Multer.File | null = this.tempCertificate;
       console.log("certificateFileeee", certificateFile);
 
+      if (!certificateFile) {
+        throw new CustomError(
+          "Certificate file is missing",
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
       const certificateUrl = await this.fileService.uploadFile(certificateFile);
       if (!certificateUrl) {
         throw new CustomError(
@@ -164,10 +175,12 @@ class CompanyServices implements ICompanyServices {
       await redisClient.del(`${email}:data`);
       await redisClient.del(`${email}:otp`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in OTP verification: ${error.message}`,
+        `Error in company otpVerification: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -184,10 +197,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in resending OTP: ${error.message}`,
+        `Error in company resendOtp: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -244,10 +259,12 @@ class CompanyServices implements ICompanyServices {
       };
 
       return { companyData, accessToken, refreshToken };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in company login: ${error.message}`,
+        `Error in loginCompany: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -264,10 +281,12 @@ class CompanyServices implements ICompanyServices {
         throw new CustomError("Failed to send OTP", HttpStatusCode.BAD_REQUEST);
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in forgot password email: ${error.message}`,
+        `Error in company forgotPasswordEmail: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -289,10 +308,12 @@ class CompanyServices implements ICompanyServices {
       }
       await redisClient.del(email);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in OTP verification: ${error.message}`,
+        `Error in company forgotPasswordOTP: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -312,16 +333,20 @@ class CompanyServices implements ICompanyServices {
         throw new CustomError("User not found", HttpStatusCode.NOT_FOUND);
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in password reset: ${error.message}`,
+        `Error in company forgotPasswordReset: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
-  getCompanyDetails = async (company_id: string): Promise<any> => {
+  getCompanyDetails = async (
+    company_id: string
+  ): Promise<{ companyProfile: ICompany; imgBuffer: Buffer | null }> => {
     try {
       const companyProfile = await this.companyRepository.getCompanyById(
         company_id
@@ -335,10 +360,12 @@ class CompanyServices implements ICompanyServices {
         imgBuffer = await this.fileService.getFile(companyProfile.profileImage);
       }
       return { companyProfile, imgBuffer };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching company profile: ${error.message}`,
+        `Error in getCompanyDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -360,10 +387,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error updating company details: ${error.message}`,
+        `Error in editCompanyDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -422,10 +451,12 @@ class CompanyServices implements ICompanyServices {
         }
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in job post creation/update: ${error.message}`,
+        `Error in company createOrUpdateJobPost: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -445,10 +476,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return jobPosts;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching company job posts: ${error.message}`,
+        `Error in company jobPostByCompanyId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -460,10 +493,12 @@ class CompanyServices implements ICompanyServices {
         throw new CustomError("Job post not found", HttpStatusCode.NOT_FOUND);
       }
       return jobPost;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job post: ${error.message}`,
+        `Error in company registration: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -478,10 +513,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error deleting job post: ${error.message}`,
+        `Error in company deleteJobPostById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -500,10 +537,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return jobApplications;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job applications: ${error.message}`,
+        `Error in company getJobApplicationsByCompanyId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -522,9 +561,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return jobApplications;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job applications`,
+        `Error in company getJobApplicationsByJobId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -534,7 +576,7 @@ class CompanyServices implements ICompanyServices {
     applicationId: string,
     status: string,
     statusMessage: string,
-    offerLetter: any
+    offerLetter?: Express.Multer.File
   ): Promise<boolean> => {
     try {
       const jobApplication = await this.companyRepository.getJobApplicationById(
@@ -584,7 +626,9 @@ class CompanyServices implements ICompanyServices {
         },
         jobApplication.user_id
       );
-
+      if (!offerLetter) {
+        throw new CustomError("offerLetter not found", HttpStatusCode.NOT_FOUND);
+      }
       const offerLetterUrl = await this.fileService.uploadFile(offerLetter);
       let offerLetterStr = "";
       if (offerLetterUrl) {
@@ -598,9 +642,12 @@ class CompanyServices implements ICompanyServices {
         offerLetterStr
       );
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error updating application status`,
+        `Error in company updateApplicationStatus: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -608,9 +655,15 @@ class CompanyServices implements ICompanyServices {
 
   updateProfileImg = async (
     company_id: string,
-    image: any
+    image?: Express.Multer.File
   ): Promise<boolean> => {
     try {
+      if (!image) {
+        throw new CustomError(
+          "image not found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
       const imageUrl = await this.fileService.uploadFile(image);
       if (!imageUrl) {
         throw new CustomError(
@@ -630,10 +683,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in profile image update: ${error.message}`,
+        `Error in company registration: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -670,10 +725,12 @@ class CompanyServices implements ICompanyServices {
       }
       application.resume = resumeBase64;
       return application;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job application: ${error.message}`,
+        `Error in company getJobApplicationById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -682,9 +739,12 @@ class CompanyServices implements ICompanyServices {
   searchUser = async (query: string): Promise<IUser[]> => {
     try {
       return await this.userRepository.searchByUserName(query);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error searching for companies: ${error.message}`,
+        `Error in company searchUser: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -710,9 +770,12 @@ class CompanyServices implements ICompanyServices {
         );
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error setting interview details: ${error.message}`,
+        `Error in company setInterviewDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -748,15 +811,20 @@ class CompanyServices implements ICompanyServices {
       );
 
       return userImagesWithId;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching company profile images: ${error.message}`,
+        `Error in company getAllUserProfileImages: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
-  getUserProfile = async (user_id: string): Promise<any> => {
+  getUserProfile = async (
+    user_id: string
+  ): Promise<{ userProfile: IUser; imgBuffer: Buffer | null }> => {
     try {
       const userProfile = await this.userRepository.getUserById(user_id);
       if (!userProfile) {
@@ -768,10 +836,12 @@ class CompanyServices implements ICompanyServices {
         imgBuffer = await this.fileService.getFile(userProfile.profileImage);
       }
       return { userProfile, imgBuffer };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching user profile: ${error.message}`,
+        `Error in company getUserProfile: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

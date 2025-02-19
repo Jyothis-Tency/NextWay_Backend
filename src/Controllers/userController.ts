@@ -200,7 +200,7 @@ class UserController {
   ) => {
     try {
       const applicationData = req.body;
-      const resume = req.file;
+      const resume: Express.Multer.File | undefined = req.file;
       applicationData.companyName = req.body.companyName;
       applicationData.jobTitle = req.body.jobTitle;
       const result = await this.userService.newJobApplication(
@@ -222,7 +222,7 @@ class UserController {
   ) => {
     try {
       const user_id = req.params.user_id;
-      const img = req.file;
+      const img: Express.Multer.File | undefined = req.file;
       const image = await this.userService.updateProfileImg(user_id, img);
       if (image) {
         res.status(HttpStatusCode.OK).json({ status: true });
@@ -339,7 +339,7 @@ class UserController {
       if (result) {
         res.status(HttpStatusCode.OK).json({ planData: result });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.log(`Error in emailValidation at userController : ${error}`);
       next(error);
     }
@@ -363,6 +363,8 @@ class UserController {
         image: imageBase64,
       });
     } catch (error) {
+      console.log("errorindsaafesfgd",error);
+      
       next(error);
     }
   };

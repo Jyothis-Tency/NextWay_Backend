@@ -24,9 +24,12 @@ class CompanyRepository implements ICompanyRepository {
   findByEmail = async (email: string): Promise<ICompany | null> => {
     try {
       return await this.company.findOne({ email });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error finding company by email",
+        `Error in company findByEmail: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -35,9 +38,12 @@ class CompanyRepository implements ICompanyRepository {
   register = async (userData: ICompany): Promise<ICompany> => {
     try {
       return await this.company.create(userData);
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error registering company",
+        `Error in company register: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -54,9 +60,12 @@ class CompanyRepository implements ICompanyRepository {
         { new: true }
       );
       return updatedUser;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error updating password",
+        `Error in company updatePassword: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -65,9 +74,12 @@ class CompanyRepository implements ICompanyRepository {
   getCompanyById = async (company_id: string): Promise<ICompany | null> => {
     try {
       return await this.company.findOne({ company_id: company_id });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching company by ID",
+        `Error in company getCompanyById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -83,9 +95,12 @@ class CompanyRepository implements ICompanyRepository {
         { $set: companyData }
       );
       return updatedCompany.modifiedCount > 0;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error updating company",
+        `Error in company putCompanyById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -99,9 +114,12 @@ class CompanyRepository implements ICompanyRepository {
         { upsert: true, new: true }
       );
       return upsertedJobPost;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error creating or updating job post",
+        `Error in company createOrUpdateJobPost: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -110,9 +128,12 @@ class CompanyRepository implements ICompanyRepository {
   getAllJobs = async (): Promise<IJobPost[]> => {
     try {
       return await this.jobPosts.find().sort({ createdAt: -1 });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching all jobs",
+        `Error in company getAllJobs: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -121,9 +142,12 @@ class CompanyRepository implements ICompanyRepository {
   getJobPostById = async (_id: string): Promise<IJobPost | null> => {
     try {
       return await this.jobPosts.findOne({ _id: _id });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching job post by ID",
+        `Error in company getJobPostById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -133,9 +157,12 @@ class CompanyRepository implements ICompanyRepository {
     try {
       const result = await this.jobPosts.deleteOne({ _id: _id });
       return result.deletedCount === 1;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error deleting job post",
+        `Error in company deleteJobPost: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -146,9 +173,12 @@ class CompanyRepository implements ICompanyRepository {
   ): Promise<IJobApplication[]> => {
     try {
       return await this.jobApplication.find({ company_id: company_id });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching job applications",
+        `Error in company jobApplicationsByCompanyId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -164,9 +194,12 @@ class CompanyRepository implements ICompanyRepository {
         { $set: { profileImage: url } }
       );
       return result.modifiedCount > 0;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error updating profile image",
+        `Error in company postProfileImg: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -177,9 +210,12 @@ class CompanyRepository implements ICompanyRepository {
   ): Promise<IJobApplication[]> => {
     try {
       return await this.jobApplication.find({ job_id: jobId });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job applications`,
+        `Error in company jobApplicationsJobId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -197,9 +233,12 @@ class CompanyRepository implements ICompanyRepository {
         { $set: { status, statusMessage, offerLetter } }
       );
       return result.modifiedCount > 0;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error updating application status`,
+        `Error in company updateApplicationStatus: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -210,9 +249,12 @@ class CompanyRepository implements ICompanyRepository {
   ): Promise<IJobApplication | null> => {
     try {
       return await this.jobApplication.findOne({ _id: applicationId });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching job application by ID",
+        `Error in company getJobApplicationById: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -221,9 +263,12 @@ class CompanyRepository implements ICompanyRepository {
   searchByCompanyName = async (name: string): Promise<ICompany[]> => {
     try {
       return await this.company.find({ name: { $regex: name, $options: "i" } });
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error searching for companies",
+        `Error in company searchByCompanyName: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -239,9 +284,12 @@ class CompanyRepository implements ICompanyRepository {
         { $set: { interview } }
       );
       return result.modifiedCount > 0;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error setting interview details",
+        `Error in company setInterviewDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -259,9 +307,12 @@ class CompanyRepository implements ICompanyRepository {
       console.log("result in company repository", result);
 
       return result.modifiedCount > 0;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        "Error fetching company by ID",
+        `Error in company changeVerificationStatus: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

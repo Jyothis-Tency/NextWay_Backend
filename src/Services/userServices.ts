@@ -123,10 +123,12 @@ class UserServices implements IUserServices {
       };
 
       return { userData, accessToken, refreshToken };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in login: ${error.message}`,
+        `Error in loginUser: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -203,10 +205,12 @@ class UserServices implements IUserServices {
         subscriptionFeatures: user?.subscriptionFeatures,
       };
       return userData;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in user registration: ${error.message}`,
+        `Error in user handleGoogleAuth: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -232,10 +236,12 @@ class UserServices implements IUserServices {
         throw new CustomError("Failed to send OTP", HttpStatusCode.BAD_REQUEST);
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in user registration: ${error.message}`,
+        `Error in registerUser: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -283,10 +289,12 @@ class UserServices implements IUserServices {
       await redisClient.del(`${email}:data`);
       await redisClient.del(`${email}:otp`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in OTP verification: ${error.message}`,
+        `Error in user otpVerification: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -303,10 +311,12 @@ class UserServices implements IUserServices {
         );
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in resending OTP: ${error.message}`,
+        `Error in user resendOtp: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -324,10 +334,12 @@ class UserServices implements IUserServices {
         throw new CustomError("Failed to send OTP", HttpStatusCode.BAD_REQUEST);
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in forgot password email: ${error.message}`,
+        `Error in user forgotPasswordEmail: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -350,10 +362,12 @@ class UserServices implements IUserServices {
       }
       await redisClient.del(email);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in forgot password OTP verification: ${error.message}`,
+        `Error in user forgotPasswordOTP: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -377,10 +391,12 @@ class UserServices implements IUserServices {
         );
       }
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in password reset: ${error.message}`,
+        `Error in user forgotPasswordReset: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -407,16 +423,20 @@ class UserServices implements IUserServices {
       }
 
       return { jobPosts, companies };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job posts: ${error.message}`,
+        `Error in user getAllJobPosts: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
-  getUserProfile = async (user_id: string): Promise<any> => {
+  getUserProfile = async (
+    user_id: string
+  ): Promise<{ userProfile: IUser; imgBuffer: Buffer | null }> => {
     try {
       const userProfile = await this.userRepository.getUserById(user_id);
       if (!userProfile) {
@@ -428,10 +448,12 @@ class UserServices implements IUserServices {
         imgBuffer = await this.fileService.getFile(userProfile.profileImage);
       }
       return { userProfile, imgBuffer };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching user profile: ${error.message}`,
+        `Error in user getUserProfile: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -450,10 +472,12 @@ class UserServices implements IUserServices {
         );
       }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error updating user details: ${error.message}`,
+        `Error in user editUserDetailsService: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -461,12 +485,17 @@ class UserServices implements IUserServices {
 
   newJobApplication = async (
     applicationData: IJobApplication,
-    resumeFile: any
+    resumeFile?: Express.Multer.File
   ): Promise<IJobApplication> => {
     try {
       console.log("newJobApplication");
       console.log("resumeFile in newJobApplication", resumeFile);
-
+      if (!resumeFile) {
+        throw new CustomError(
+          "resumeFile not found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
       const resumeUrl = await this.fileService.uploadFile(resumeFile);
       if (!resumeUrl) {
         throw new CustomError(
@@ -504,17 +533,28 @@ class UserServices implements IUserServices {
       // });
 
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in job application: ${error.message}`,
+        `Error in user newJobApplication: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
   };
 
-  updateProfileImg = async (user_id: string, image: any): Promise<boolean> => {
+  updateProfileImg = async (
+    user_id: string,
+    image?: Express.Multer.File
+  ): Promise<boolean> => {
     try {
+      if (!image) {
+        throw new CustomError(
+          "image not found",
+          HttpStatusCode.NOT_FOUND
+        );
+      }
       const resumeUrl = await this.fileService.uploadFile(image);
       if (!resumeUrl) {
         throw new CustomError(
@@ -534,10 +574,12 @@ class UserServices implements IUserServices {
         );
       }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error in profile image update: ${error.message}`,
+        `Error in user updateProfileImg: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -555,10 +597,12 @@ class UserServices implements IUserServices {
         );
       }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching subscription history: ${error.message}`,
+        `Error in user getSubscriptionHistory: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -578,10 +622,12 @@ class UserServices implements IUserServices {
       //   );
       // }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching current subscription: ${error.message}`,
+        `Error in user getCurrentSubscriptionDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -595,7 +641,7 @@ class UserServices implements IUserServices {
         user_id
       );
 
-     await Promise.all(
+      await Promise.all(
         applications
           .filter((application) => application.offerLetter) // Filter companys with profile images
           .map(async (application) => {
@@ -617,10 +663,12 @@ class UserServices implements IUserServices {
       //   );
       // }
       return applications;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching job applications: ${error.message}`,
+        `Error in user getJobApplicationsByUserId: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -629,9 +677,12 @@ class UserServices implements IUserServices {
   searchCompany = async (query: string): Promise<ICompany[]> => {
     try {
       return await this.companyRepository.searchByCompanyName(query);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error searching for companies: ${error.message}`,
+        `Error in user searchCompany: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -667,9 +718,12 @@ class UserServices implements IUserServices {
       );
 
       return companyImagesWithId;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching user profile images: ${error.message}`,
+        `Error in user getAllCompanyProfileImages: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -690,10 +744,12 @@ class UserServices implements IUserServices {
         );
       }
       return companies || null;
-    } catch (error: any) {
-      console.log(`Error in forgotPassword at userServices : ${error}`);
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching all companies: ${error.message}`,
+        `Error in user fetchAllCompanyDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }
@@ -711,12 +767,20 @@ class UserServices implements IUserServices {
         );
       }
       return result;
-    } catch (error) {
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in user getSubscriptionPlans: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
     }
   };
 
-  getCompanyDetails = async (company_id: string): Promise<any> => {
+  getCompanyDetails = async (
+    company_id: string
+  ): Promise<{ companyProfile: ICompany; imgBuffer: Buffer | null }> => {
     try {
       const companyProfile = await this.companyRepository.getCompanyById(
         company_id
@@ -730,10 +794,12 @@ class UserServices implements IUserServices {
         imgBuffer = await this.fileService.getFile(companyProfile.profileImage);
       }
       return { companyProfile, imgBuffer };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
-        `Error fetching company profile: ${error.message}`,
+        `Error in user getCompanyDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
       );
     }

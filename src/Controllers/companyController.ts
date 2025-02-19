@@ -21,10 +21,10 @@ class CompanyController {
   ): Promise<void> => {
     try {
       const companyData: ICompany = req.body;
-      const certificate = req.file;
+      const certificate: Express.Multer.File | undefined = req.file 
       await this.companyService.registerCompany(companyData, certificate);
       res.status(HttpStatusCode.OK).send("OTP send to mail successfully");
-    } catch (error) {
+    } catch (error: unknown) {
       next(error);
     }
   };
@@ -281,7 +281,7 @@ class CompanyController {
   ): Promise<void> => {
     try {
       const company_id = req.params.company_id;
-      const img = req.file;
+      const img: Express.Multer.File | undefined = req.file;
       const image = await this.companyService.updateProfileImg(company_id, img);
       if (image) {
         res.status(HttpStatusCode.OK).json({ status: true });
@@ -314,7 +314,7 @@ class CompanyController {
     try {
       const { applicationId } = req.params;
       const { status, statusMessage } = req.body;
-      const offerLetter = req.file
+      const offerLetter: Express.Multer.File | undefined = req.file;
       await this.companyService.updateApplicationStatus(
         applicationId,
         status,
