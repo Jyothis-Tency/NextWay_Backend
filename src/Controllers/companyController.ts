@@ -14,6 +14,12 @@ class CompanyController {
     this.companyService = companyService;
   }
 
+  /**
+   * Registers a new company with uploaded certificate
+   * @param req Request containing company registration data and certificate file
+   * @param res Response to confirm OTP sent
+   * @param next Next function for error handling
+   */
   registerUser = async (
     req: Request,
     res: Response,
@@ -21,7 +27,7 @@ class CompanyController {
   ): Promise<void> => {
     try {
       const companyData: ICompany = req.body;
-      const certificate: Express.Multer.File | undefined = req.file 
+      const certificate: Express.Multer.File | undefined = req.file;
       await this.companyService.registerCompany(companyData, certificate);
       res.status(HttpStatusCode.OK).send("OTP send to mail successfully");
     } catch (error: unknown) {
@@ -29,6 +35,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Verifies company's email through OTP validation
+   * @param req Request containing OTP and email in body
+   * @param res Response to confirm verification status
+   * @param next Next function for error handling
+   */
   otpVerification = async (
     req: Request,
     res: Response,
@@ -44,6 +56,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Resends OTP to company's email for verification
+   * @param req Request containing email in body
+   * @param res Response to confirm OTP resend
+   * @param next Next function for error handling
+   */
   resentOtp = async (
     req: Request,
     res: Response,
@@ -61,6 +79,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Handles company login by validating credentials and setting authentication cookies
+   * @param req Request containing email and password in body
+   * @param res Response to set auth cookies and return company data
+   * @param next Next function for error handling
+   */
   loginUser = async (
     req: Request,
     res: Response,
@@ -94,6 +118,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Initiates forgot password process by sending email
+   * @param req Request containing company's email in body
+   * @param res Response to confirm email sent
+   * @param next Next function for error handling
+   */
   forgotPasswordEmail = async (
     req: Request,
     res: Response,
@@ -110,6 +140,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Validates OTP for forgot password process
+   * @param req Request containing email and OTP in body
+   * @param res Response to confirm OTP validation
+   * @param next Next function for error handling
+   */
   forgotPasswordOTP = async (
     req: Request,
     res: Response,
@@ -126,6 +162,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Resets company's password after successful OTP verification
+   * @param req Request containing email and new password in body
+   * @param res Response to confirm password reset
+   * @param next Next function for error handling
+   */
   forgotPasswordReset = async (
     req: Request,
     res: Response,
@@ -145,6 +187,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Fetches detailed information for a specific company
+   * @param req Request containing company_id in params
+   * @param res Response with company profile and base64 encoded image
+   * @param next Next function for error handling
+   */
   getCompanyDetails = async (
     req: Request,
     res: Response,
@@ -168,6 +216,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Updates company profile information
+   * @param req Request containing company_id in params and updated data in body
+   * @param res Response to confirm update
+   * @param next Next function for error handling
+   */
   editCompanyDetails = async (
     req: Request,
     res: Response,
@@ -188,6 +242,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Creates or updates a job posting
+   * @param req Request containing job post data in body
+   * @param res Response to confirm creation/update
+   * @param next Next function for error handling
+   */
   createOrUpdateJobPost = async (
     req: Request,
     res: Response,
@@ -206,6 +266,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Retrieves all job posts for a specific company
+   * @param req Request containing company_id in params
+   * @param res Response with company's job posts
+   * @param next Next function for error handling
+   */
   jobPostsByCompany = async (
     req: Request,
     res: Response,
@@ -222,6 +288,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Fetches details of a specific job post
+   * @param req Request containing job_id in params
+   * @param res Response with job post details
+   * @param next Next function for error handling
+   */
   getJobPostByJobId = async (
     req: Request,
     res: Response,
@@ -238,6 +310,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Deletes a specific job post
+   * @param req Request containing job_id in params
+   * @param res Response to confirm deletion
+   * @param next Next function for error handling
+   */
   deleteJobPostById = async (
     req: Request,
     res: Response,
@@ -254,6 +332,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Retrieves all job applications for a specific company
+   * @param req Request containing company_id in params
+   * @param res Response with company's job applications
+   * @param next Next function for error handling
+   */
   getJobApplicationsByCompanyId = async (
     req: Request,
     res: Response,
@@ -274,6 +358,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Updates company's profile image
+   * @param req Request containing company_id in params and image file
+   * @param res Response to confirm image update
+   * @param next Next function for error handling
+   */
   updateProfileImgController = async (
     req: Request,
     res: Response,
@@ -291,6 +381,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Retrieves all job applications for a specific job posting
+   * @param req Request containing jobId in params
+   * @param res Response with job applications
+   * @param next Next function for error handling
+   */
   getJobApplicationsByJobId = async (
     req: Request,
     res: Response,
@@ -306,6 +402,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Updates the status of a job application
+   * @param req Request containing applicationId in params, status and message in body, and optional offer letter file
+   * @param res Response to confirm status update
+   * @param next Next function for error handling
+   */
   updateApplicationStatus = async (
     req: Request,
     res: Response,
@@ -330,6 +432,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Fetches details of a specific job application
+   * @param req Request containing applicationId in params
+   * @param res Response with application details
+   * @param next Next function for error handling
+   */
   getJobApplicationById = async (
     req: Request,
     res: Response,
@@ -351,6 +459,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Searches for users based on query string
+   * @param req Request containing search query in query params
+   * @param res Response with matching users
+   * @param next Next function for error handling
+   */
   searchUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { query } = req.query;
@@ -361,6 +475,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Sets or updates interview details for a job application
+   * @param req Request containing applicationId in params and interview details in body
+   * @param res Response to confirm interview details update
+   * @param next Next function for error handling
+   */
   setInterviewDetails = async (
     req: Request,
     res: Response,
@@ -383,6 +503,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Retrieves profile images for all users
+   * @param req Request object
+   * @param res Response with user profile images
+   * @param next Next function for error handling
+   */
   getAllUserProfileImages = async (
     req: Request,
     res: Response,
@@ -396,6 +522,12 @@ class CompanyController {
     }
   };
 
+  /**
+   * Fetches user profile details including profile image
+   * @param req Request containing user_id in params
+   * @param res Response with user profile and base64 encoded image
+   * @param next Next function for error handling
+   */
   getUserProfileController = async (
     req: Request,
     res: Response,

@@ -37,7 +37,7 @@ export const userRefreshTokenHandle = async (
       }
 
       const { _id, role } = decoded as jwt.JwtPayload;
-
+      console.log("token role", role);
       // Check if user exists and is not blocked
       const user = await User.findOne({
         user_id: new mongoose.Types.ObjectId(_id),
@@ -47,6 +47,14 @@ export const userRefreshTokenHandle = async (
         res
           .status(403)
           .json({ message: "Your account is blocked by Admin", role: role });
+        return;
+      }
+
+      if ("user" != role) {
+        res.status(403).json({
+          message: "Your role is not matching",
+          role: role,
+        });
         return;
       }
 

@@ -52,6 +52,14 @@ export const adminAuth = async (
           .json({ message: "Your are not admin", role: role });
       }
 
+      if ("admin" != role) {
+        res.status(403).json({
+          message: "Your role is not matching",
+          role: role,
+        });
+        return;
+      }
+
       next();
     });
   } catch (error) {

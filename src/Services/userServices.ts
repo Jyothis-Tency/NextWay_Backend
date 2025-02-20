@@ -59,7 +59,7 @@ class UserServices implements IUserServices {
     this.adminRepository = adminRepository;
     this.fileService = new FileService();
     this.io = io;
-    this.client = new OAuth2Client(GOOGLE_CLIENT_ID);
+    this.client = new OAuth2Client(GOOGLE_CLIENT_ID as string);
   }
 
   loginUser = async (
@@ -491,10 +491,7 @@ class UserServices implements IUserServices {
       console.log("newJobApplication");
       console.log("resumeFile in newJobApplication", resumeFile);
       if (!resumeFile) {
-        throw new CustomError(
-          "resumeFile not found",
-          HttpStatusCode.NOT_FOUND
-        );
+        throw new CustomError("resumeFile not found", HttpStatusCode.NOT_FOUND);
       }
       const resumeUrl = await this.fileService.uploadFile(resumeFile);
       if (!resumeUrl) {
@@ -550,10 +547,7 @@ class UserServices implements IUserServices {
   ): Promise<boolean> => {
     try {
       if (!image) {
-        throw new CustomError(
-          "image not found",
-          HttpStatusCode.NOT_FOUND
-        );
+        throw new CustomError("image not found", HttpStatusCode.NOT_FOUND);
       }
       const resumeUrl = await this.fileService.uploadFile(image);
       if (!resumeUrl) {

@@ -45,7 +45,15 @@ export const adminRefreshTokenHandle = async (
       });
       if (!admin) {
         console.log("Your are not admin");
-        res.status(403).json({ message: "Your are not admin", role: role });
+        res.status(403).json({ message: "Admin not found", role: role });
+        return;
+      }
+
+      if ("admin" != role) {
+        res.status(403).json({
+          message: "Your role is not matching",
+          role: role,
+        });
         return;
       }
 

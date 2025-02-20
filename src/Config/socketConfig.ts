@@ -95,6 +95,7 @@ export const initializeSocket = (server: http.Server) => {
 
       // Emit to the specific chat room
       io.to(chatRoomName).emit("receiveMessage", newMessage);
+      // io.emit("newMessageArrived", messageData.sender);
     });
 
     socket.on("joinChat", (chatData) => {

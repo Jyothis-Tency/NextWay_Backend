@@ -12,6 +12,12 @@ class UserController {
     this.userService = userService;
   }
 
+  /**
+   * Handles user login by validating credentials
+   * @param req Request containing email and password in body
+   * @param res Response to return user data
+   * @param next Next function for error handling
+   */
   loginUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
@@ -37,6 +43,13 @@ class UserController {
       next(error);
     }
   };
+
+  /**
+   * Processes Google OAuth authentication
+   * @param req Request containing Google credential in body
+   * @param res Response to return authenticated user data
+   * @param next Next function for error handling
+   */
   handleGoogleAuth = async (
     req: Request,
     res: Response,
@@ -54,6 +67,12 @@ class UserController {
     }
   };
 
+  /**
+   * Registers a new user and sends verification OTP via email
+   * @param req Request containing user registration data in body
+   * @param res Response to confirm OTP sent
+   * @param next Next function for error handling
+   */
   registerUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userData: IUser = req.body;
@@ -64,6 +83,12 @@ class UserController {
     }
   };
 
+  /**
+   * Verifies user's email through OTP validation
+   * @param req Request containing OTP and email in body
+   * @param res Response to confirm verification status
+   * @param next Next function for error handling
+   */
   otpVerification = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { receivedOTP, email } = req.body;
@@ -74,6 +99,12 @@ class UserController {
     }
   };
 
+  /**
+   * Resends OTP to user's email for verification
+   * @param req Request containing email in body
+   * @param res Response to confirm OTP resend
+   * @param next Next function for error handling
+   */
   resentOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email } = req.body;
@@ -86,6 +117,12 @@ class UserController {
     }
   };
 
+  /**
+   * Initiates forgot password process by sending email
+   * @param req Request containing user's email in body
+   * @param res Response to confirm email sent
+   * @param next Next function for error handling
+   */
   forgotPasswordEmail = async (
     req: Request,
     res: Response,
@@ -102,6 +139,12 @@ class UserController {
     }
   };
 
+  /**
+   * Validates OTP for forgot password process
+   * @param req Request containing email and OTP in body
+   * @param res Response to confirm OTP validation
+   * @param next Next function for error handling
+   */
   forgotPasswordOTP = async (
     req: Request,
     res: Response,
@@ -117,12 +160,12 @@ class UserController {
       next(error);
     }
   };
+
   /**
-   *
-   * @param req
-   * @param res
-   * @param next
-   *
+   * Resets user's password after successful OTP verification
+   * @param req Request containing email and new password in body
+   * @param res Response to confirm password reset
+   * @param next Next function for error handling
    */
   forgotPasswordReset = async (
     req: Request,
@@ -143,6 +186,12 @@ class UserController {
     }
   };
 
+  /**
+   * Retrieves all job postings and associated company information
+   * @param req Request object
+   * @param res Response containing job posts and companies data
+   * @param next Next function for error handling
+   */
   getAllJobPosts = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const serviceResponse = await this.userService.getAllJobPosts();
@@ -153,6 +202,12 @@ class UserController {
     }
   };
 
+  /**
+   * Fetches user profile details including profile image
+   * @param req Request containing user_id in params
+   * @param res Response with user profile and base64 encoded image
+   * @param next Next function for error handling
+   */
   getUserProfileController = async (
     req: Request,
     res: Response,
@@ -177,6 +232,12 @@ class UserController {
     }
   };
 
+  /**
+   * Updates user profile information
+   * @param req Request containing user_id in params and updated data in body
+   * @param res Response with updated user details
+   * @param next Next function for error handling
+   */
   editUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user_id = req.params.user_id;
@@ -193,6 +254,12 @@ class UserController {
     }
   };
 
+  /**
+   * Submits a new job application with resume
+   * @param req Request containing application data and resume file
+   * @param res Response to confirm application submission
+   * @param next Next function for error handling
+   */
   newJobApplication = async (
     req: Request,
     res: Response,
@@ -215,6 +282,12 @@ class UserController {
     }
   };
 
+  /**
+   * Updates user's profile image
+   * @param req Request containing user_id in params and image file
+   * @param res Response to confirm image update
+   * @param next Next function for error handling
+   */
   updateProfileImgController = async (
     req: Request,
     res: Response,
@@ -232,6 +305,12 @@ class UserController {
     }
   };
 
+  /**
+   * Retrieves user's subscription payment history
+   * @param req Request containing userId in params
+   * @param res Response with subscription history
+   * @param next Next function for error handling
+   */
   getSubscriptionHistory = async (
     req: Request,
     res: Response,
@@ -248,6 +327,12 @@ class UserController {
     }
   };
 
+  /**
+   * Fetches details of user's current subscription
+   * @param req Request containing userId in params
+   * @param res Response with current subscription details
+   * @param next Next function for error handling
+   */
   getCurrentSubscriptionDetail = async (
     req: Request,
     res: Response,
@@ -266,6 +351,12 @@ class UserController {
     }
   };
 
+  /**
+   * Retrieves all job applications for a specific user
+   * @param req Request containing user_id in params
+   * @param res Response with user's job applications
+   * @param next Next function for error handling
+   */
   getJobApplicationsByUserId = async (
     req: Request,
     res: Response,
@@ -282,6 +373,12 @@ class UserController {
     }
   };
 
+  /**
+   * Searches for companies based on query string
+   * @param req Request containing search query in query params
+   * @param res Response with matching companies
+   * @param next Next function for error handling
+   */
   searchCompany = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { query } = req.query;
@@ -295,6 +392,12 @@ class UserController {
     }
   };
 
+  /**
+   * Retrieves profile images for all companies
+   * @param req Request object
+   * @param res Response with company profile images
+   * @param next Next function for error handling
+   */
   getAllCompanyProfileImages = async (
     req: Request,
     res: Response,
@@ -308,6 +411,12 @@ class UserController {
     }
   };
 
+  /**
+   * Fetches comprehensive details for all companies
+   * @param req Request object
+   * @param res Response with all company details
+   * @param next Next function for error handling
+   */
   fetchAllCompanyDetails = async (
     req: Request,
     res: Response,
@@ -326,6 +435,12 @@ class UserController {
     }
   };
 
+  /**
+   * Retrieves details of a specific subscription plan
+   * @param req Request containing plan_id in body
+   * @param res Response with plan details
+   * @param next Next function for error handling
+   */
   getSubscriptionPlan = async (
     req: Request,
     res: Response,
@@ -344,6 +459,13 @@ class UserController {
       next(error);
     }
   };
+
+  /**
+   * Fetches detailed information for a specific company
+   * @param req Request containing company_id in params
+   * @param res Response with company profile and image
+   * @param next Next function for error handling
+   */
   getCompanyDetails = async (
     req: Request,
     res: Response,
@@ -363,8 +485,8 @@ class UserController {
         image: imageBase64,
       });
     } catch (error) {
-      console.log("errorindsaafesfgd",error);
-      
+      console.log("errorindsaafesfgd", error);
+
       next(error);
     }
   };

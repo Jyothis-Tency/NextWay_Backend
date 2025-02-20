@@ -44,6 +44,14 @@ const companyAuth = async (req: Request, res: Response, next: NextFunction) => {
           .json({ message: "Your account has rejected by Admin", role: role });
       }
 
+      if ("company" != role) {
+        res.status(403).json({
+          message: "Your role is not matching",
+          role: role,
+        });
+        return;
+      }
+
       next();
     });
   } catch (error) {

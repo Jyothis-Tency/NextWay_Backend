@@ -10,6 +10,12 @@ class AdminController {
     this.adminService = adminService;
   }
 
+  /**
+   * Handles admin login with authentication token generation
+   * @param req Request containing email and password in body
+   * @param res Response to set admin auth cookies and return admin data
+   * @param next Next function for error handling
+   */
   loginAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { email, password } = req.body;
@@ -39,6 +45,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Retrieves details of all registered users
+   * @param req Request object
+   * @param res Response containing all user details
+   * @param next Next function for error handling
+   */
   fetchAllUserDetails = async (
     req: Request,
     res: Response,
@@ -59,6 +71,13 @@ class AdminController {
       next(error);
     }
   };
+
+  /**
+   * Retrieves details of all registered companies
+   * @param req Request object
+   * @param res Response containing all company details
+   * @param next Next function for error handling
+   */
   fetchAllCompanyDetails = async (
     req: Request,
     res: Response,
@@ -76,6 +95,13 @@ class AdminController {
       next(error);
     }
   };
+
+  /**
+   * Toggles user account block status
+   * @param req Request containing user_id in body
+   * @param res Response with updated user data
+   * @param next Next function for error handling
+   */
   userBlockOrUnBlock = async (
     req: Request,
     res: Response,
@@ -94,6 +120,13 @@ class AdminController {
       next(error);
     }
   };
+
+  /**
+   * Toggles company account block status
+   * @param req Request containing company_id in body
+   * @param res Response with updated company data
+   * @param next Next function for error handling
+   */
   companyBlockOrUnBlock = async (
     req: Request,
     res: Response,
@@ -115,6 +148,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Retrieves details of a specific subscription plan
+   * @param req Request containing plan_id in body
+   * @param res Response with plan details
+   * @param next Next function for error handling
+   */
   getSubscriptionPlan = async (
     req: Request,
     res: Response,
@@ -133,6 +172,13 @@ class AdminController {
       next(error);
     }
   };
+
+  /**
+   * Creates a new subscription plan
+   * @param req Request containing plan details in body
+   * @param res Response to confirm plan creation
+   * @param next Next function for error handling
+   */
   createNewSubscriptionPlan = async (
     req: Request,
     res: Response,
@@ -154,6 +200,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Updates existing subscription plan details
+   * @param req Request containing updated plan data in body
+   * @param res Response to confirm plan update
+   * @param next Next function for error handling
+   */
   editSubscriptionPlan = async (
     req: Request,
     res: Response,
@@ -176,6 +228,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Retrieves profile images of all companies
+   * @param req Request object
+   * @param res Response with company profile images
+   * @param next Next function for error handling
+   */
   getAllCompanyProfileImages = async (
     req: Request,
     res: Response,
@@ -190,6 +248,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Retrieves profile images of all users
+   * @param req Request object
+   * @param res Response with user profile images
+   * @param next Next function for error handling
+   */
   getAllUserProfileImages = async (
     req: Request,
     res: Response,
@@ -203,6 +267,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Retrieves all job posts with company information
+   * @param req Request object
+   * @param res Response containing job posts and associated companies
+   * @param next Next function for error handling
+   */
   getAllJobPosts = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const serviceResponse = await this.adminService.getAllJobPosts();
@@ -213,6 +283,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Fetches detailed information for a specific company
+   * @param req Request containing company_id in params
+   * @param res Response with company profile and base64 encoded image
+   * @param next Next function for error handling
+   */
   getCompanyDetails = async (
     req: Request,
     res: Response,
@@ -240,6 +316,12 @@ class AdminController {
     }
   };
 
+  /**
+   * Fetches detailed information for a specific user
+   * @param req Request containing user_id in params
+   * @param res Response with user profile and base64 encoded image
+   * @param next Next function for error handling
+   */
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user_id = req.params.user_id;
@@ -259,6 +341,13 @@ class AdminController {
       next(error);
     }
   };
+
+  /**
+   * Updates company verification status
+   * @param req Request containing company_id in params and newStatus in body
+   * @param res Response with updated verification status
+   * @param next Next function for error handling
+   */
   changeVerificationStatus = async (
     req: Request,
     res: Response,

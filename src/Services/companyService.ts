@@ -60,7 +60,10 @@ class CompanyServices implements ICompanyServices {
         throw new CustomError("Email already exists", HttpStatusCode.CONFLICT);
       }
       if (!certificate) {
-        throw new CustomError("Certificate not found", HttpStatusCode.NOT_FOUND);
+        throw new CustomError(
+          "Certificate not found",
+          HttpStatusCode.NOT_FOUND
+        );
       }
       const certificateUrl = await this.fileService.uploadFile(certificate);
       console.log(certificateUrl);
@@ -626,13 +629,13 @@ class CompanyServices implements ICompanyServices {
         },
         jobApplication.user_id
       );
-      if (!offerLetter) {
-        throw new CustomError("offerLetter not found", HttpStatusCode.NOT_FOUND);
-      }
-      const offerLetterUrl = await this.fileService.uploadFile(offerLetter);
       let offerLetterStr = "";
-      if (offerLetterUrl) {
-        offerLetterStr = offerLetterUrl;
+      if (offerLetter) {
+        const offerLetterUrl = await this.fileService.uploadFile(offerLetter);
+
+        if (offerLetterUrl) {
+          offerLetterStr = offerLetterUrl;
+        }
       }
 
       await this.companyRepository.updateApplicationStatus(
@@ -659,10 +662,7 @@ class CompanyServices implements ICompanyServices {
   ): Promise<boolean> => {
     try {
       if (!image) {
-        throw new CustomError(
-          "image not found",
-          HttpStatusCode.NOT_FOUND
-        );
+        throw new CustomError("image not found", HttpStatusCode.NOT_FOUND);
       }
       const imageUrl = await this.fileService.uploadFile(image);
       if (!imageUrl) {

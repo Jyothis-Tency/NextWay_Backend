@@ -29,16 +29,24 @@ export const companyRefreshTokenHandle = async (
         return;
       }
 
-      const { _id, role } = decoded as jwt.JwtPayload
+      const { _id, role } = decoded as jwt.JwtPayload;
 
       // Check if company exists and is not blocked
       const company = await Company.findOne({
-              company_id: new mongoose.Types.ObjectId(_id),
-            });
+        company_id: new mongoose.Types.ObjectId(_id),
+      });
       if (!company || company.isBlocked) {
         res
           .status(403)
           .json({ message: "Your account is blocked by Admin", role: role });
+        return;
+      }
+
+      if ("company" != role) {
+        res.status(403).json({
+          message: "Your role is not matching",
+          role: role,
+        });
         return;
       }
 

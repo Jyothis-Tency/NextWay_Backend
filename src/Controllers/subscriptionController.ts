@@ -9,6 +9,12 @@ class SubscriptionController {
     this.subscriptionService = subscriptionService;
   }
 
+  /**
+   * Initializes a new subscription for a user
+   * @param req Request containing userId and planId in body.data
+   * @param res Response with subscription details
+   * @param next Next function for error handling
+   */
   initializeSubscription = async (
     req: Request,
     res: Response,
@@ -26,6 +32,12 @@ class SubscriptionController {
     }
   };
 
+  /**
+   * Verifies payment for subscription using Razorpay
+   * @param req Request containing razorpay_payment_id, razorpay_order_id, and razorpay_signature in body
+   * @param res Response with success status and subscriptionId
+   * @param next Next function for error handling
+   */
   verifyPayment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = JSON.parse(req.body.body);
@@ -45,6 +57,13 @@ class SubscriptionController {
       next(error);
     }
   };
+
+  /**
+   * Cancels an active subscription
+   * @param req Request containing subscriptionId in params
+   * @param res Response confirming subscription cancellation
+   * @param next Next function for error handling
+   */
   cancelSubscription = async (
     req: Request,
     res: Response,
@@ -64,6 +83,12 @@ class SubscriptionController {
     }
   };
 
+  /**
+   * Retrieves all subscription records
+   * @param req Request object
+   * @param res Response with all subscriptions
+   * @param next Next function for error handling
+   */
   getAllSubscriptions = async (
     req: Request,
     res: Response,
@@ -79,6 +104,12 @@ class SubscriptionController {
     }
   };
 
+  /**
+   * Handles Razorpay webhook events for subscription updates
+   * @param req Request containing event, payload and razorpay signature in headers
+   * @param res Response confirming webhook receipt
+   * @param next Next function for error handling
+   */
   webHookController = async (
     req: Request,
     res: Response,
@@ -101,6 +132,12 @@ class SubscriptionController {
     }
   };
 
+  /**
+   * Retrieves details of a specific subscription plan
+   * @param req Request containing plan_id in body
+   * @param res Response with plan details
+   * @param next Next function for error handling
+   */
   getSubscriptionPlan = async (
     req: Request,
     res: Response,
@@ -122,6 +159,12 @@ class SubscriptionController {
     }
   };
 
+  /**
+   * Retrieves subscription history for a specific user
+   * @param req Request containing userId in params
+   * @param res Response with user's subscription history
+   * @param next Next function for error handling
+   */
   getSubscriptionHistory = async (
     req: Request,
     res: Response,
@@ -140,6 +183,12 @@ class SubscriptionController {
     }
   };
 
+  /**
+   * Fetches details of user's current active subscription
+   * @param req Request containing userId in params
+   * @param res Response with current subscription details
+   * @param next Next function for error handling
+   */
   getCurrentSubscriptionDetail = async (
     req: Request,
     res: Response,

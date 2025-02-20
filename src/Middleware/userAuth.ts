@@ -31,6 +31,7 @@ export const userAuth = async (
         return userRefreshTokenHandle(req, res, next);
       }
       const { _id, role } = decoded as jwt.JwtPayload;
+      console.log("token role", role);
 
       // Check if user exists and is not blocked
       const user = await User.findOne({
@@ -42,6 +43,11 @@ export const userAuth = async (
         return res
           .status(403)
           .json({ message: "Your account is blocked by Admin", role: role });
+      }
+      if ("user" != role) {
+        return res
+          .status(403)
+          .json({ message: "Your role is not matching", role: role });
       }
 
       next();
