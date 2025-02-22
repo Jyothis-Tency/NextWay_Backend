@@ -22,20 +22,7 @@ class UserController {
     try {
       const { email, password } = req.body;
       const serviceResponse = await this.userService.loginUser(email, password);
-      res.cookie("RefreshToken", serviceResponse.refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: "/",
-      });
-      res.cookie("AccessToken", serviceResponse.accessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 15 * 60 * 1000,
-        path: "/",
-      });
+
       res
         .status(HttpStatusCode.OK)
         .json({ status: true, userData: serviceResponse.userData });

@@ -9,10 +9,14 @@ import UserModel from "../Models/userModel";
 
 class ChatRepository implements IChatRepository {
   private chatModel: Model<IChat>;
-  private userModel: Model<IUser>;  
+  private userModel: Model<IUser>;
   private companyModel: Model<ICompany>;
 
-  constructor(chatModel: Model<IChat>, userModel: Model<IUser>, companyModel: Model<ICompany>) {
+  constructor(
+    chatModel: Model<IChat>,
+    userModel: Model<IUser>,
+    companyModel: Model<ICompany>
+  ) {
     this.chatModel = chatModel;
     this.userModel = userModel;
     this.companyModel = companyModel;
@@ -92,7 +96,7 @@ class ChatRepository implements IChatRepository {
           messages: chat.messages,
           lastMessage: lastMessage?.content || "",
           lastMessageTime: lastMessage?.timestamp || new Date(),
-          userName: user?.firstName || "Unknown User",
+          userName: `${user?.firstName} ${user?.lastName}` || "Unknown User",
           userAvatar: user?.profileImage || "",
         };
       });
