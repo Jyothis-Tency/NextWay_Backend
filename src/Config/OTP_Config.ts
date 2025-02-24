@@ -44,9 +44,7 @@ const sendOTPasMail = async (email: string, otp: string): Promise<boolean> => {
   };
 
   try {
-    console.log(
-      `ENV Email and Password : ${process.env.AppEmail},${process.env.AppPassword}`
-    );
+
     await transporter.sendMail(mailOptions);
     console.log(`OTP send to mail successfully`);
     return true;

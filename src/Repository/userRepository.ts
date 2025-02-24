@@ -14,8 +14,6 @@ import { Types } from "mongoose";
 import CustomError from "../Utils/customError";
 import HttpStatusCode from "../Enums/httpStatusCodes";
 
-import { application } from "express";
-
 class UserRepository implements IUserRepository {
   private user = Model<IUser>;
   private company = Model<ICompany>;

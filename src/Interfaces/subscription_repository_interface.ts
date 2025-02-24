@@ -37,4 +37,8 @@ export interface ISubscriptionRepository {
   getCurrentSubscriptionDetails(
     user_id: string
   ): Promise<ISubscriptionDetails | null>;
+  getExpiredSubscriptions(
+    today: Date,
+
+  ): Promise<ISubscriptionDetails[]>;
 }

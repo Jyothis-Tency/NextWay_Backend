@@ -253,6 +253,26 @@ class SubscriptionRepository implements ISubscriptionRepository {
       );
     }
   };
+
+  getExpiredSubscriptions = async (
+    today: Date
+  ): Promise<ISubscriptionDetails[]> => {
+    try {
+      const result = await this.subscriptionDetails.find({
+        endDate: { $lt: today },
+        isCurrent: true,
+      });
+      return result;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in subscription getExpiredSubscriptions: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
 }
 
 export default SubscriptionRepository;

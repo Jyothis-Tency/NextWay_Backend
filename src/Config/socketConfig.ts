@@ -71,19 +71,10 @@ export const initializeSocket = (server: http.Server) => {
     const clientType = socket.handshake.query.clientType as "user" | "company";
     const clientId = socket.handshake.query.clientId as string;
 
-    // console.log(
-    //   `A ${clientType} connected:`,
-    //   socket.id,
-    //   `${clientType}_id:`,
-    //   clientId
-    // );
-
-    // Join client to their personal room
     const personalRoom = `${clientType}_${clientId}`;
     socket.join(personalRoom);
 
     socket.on("sendMessage", async (messageData) => {
-      console.log("socket sendMessage:", messageData);
 
       const newMessage = await chatService.sendMessage(messageData);
 
@@ -98,7 +89,6 @@ export const initializeSocket = (server: http.Server) => {
       // io.emit("newMessageArrived", messageData.sender);
     });
     socket.on("sendMessage", async (messageData) => {
-      console.log("socket sendMessage:", messageData);
 
       io.emit("newMessageArrived", messageData);
     });

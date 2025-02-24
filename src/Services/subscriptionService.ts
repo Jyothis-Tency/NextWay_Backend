@@ -1,5 +1,6 @@
 import razorpayInstance from "../Config/razorpayConfig";
 import HttpStatusCode from "../Enums/httpStatusCodes";
+import dayjs from "dayjs";
 import {
   ISubscriptionDetails,
   IOrderResponse,
@@ -375,7 +376,7 @@ class SubscriptionServices implements ISubscriptionServices {
       );
 
       subscriptionDetails.endDate = newEndDate;
-      subscriptionDetails.paymentId = subscription.entity.payment_id||""; // Update with new payment ID
+      subscriptionDetails.paymentId = subscription.entity.payment_id || ""; // Update with new payment ID
       await this.subscriptionRepository.updateSubscriptionStatus(
         { subscriptionId: subscriptionDetails.subscriptionId || "" },
         {
@@ -560,6 +561,27 @@ class SubscriptionServices implements ISubscriptionServices {
       if (error instanceof CustomError) throw error;
       throw new CustomError(
         `Error in subscription getCurrentSubscriptionDetails: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        HttpStatusCode.INTERNAL_SERVER_ERROR
+      );
+    }
+  };
+
+  cancelExpiredSubscriptions = async () => {
+    try {
+      const today = dayjs().startOf("day").toDate();
+      const expiredSubscriptions =
+        await this.subscriptionRepository.getExpiredSubscriptions(today);
+
+      for (const subscription of expiredSubscriptions) {
+        await this.cancelSubscription(subscription.subscriptionId || "");
+      }
+      return true;
+    } catch (error: unknown) {
+      if (error instanceof CustomError) throw error;
+      throw new CustomError(
+        `Error in subscription cancelExpiredSubscriptions: ${
           error instanceof Error ? error.message : "Unknown error"
         }`,
         HttpStatusCode.INTERNAL_SERVER_ERROR
