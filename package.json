@@ -9,7 +9,7 @@
     "build": "tsc",
     "compiler": "tsc --watch",
     "server": "nodemon dist/app.js",
-    "start": "npm run watch:ts"
+    "start": "node dist/app.js"
   },
   "keywords": [],
   "author": "",
