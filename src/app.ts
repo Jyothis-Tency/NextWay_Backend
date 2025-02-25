@@ -22,7 +22,23 @@ const PORT = process.env.PORT || 3000;
 
 database_connection();
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+const allowedOrigins = [
+  "http://localhost:5173", // Development
+  "https://next-way-frontend.vercel.app", // Production
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -32,11 +48,11 @@ app.use(morgan("dev"));
 app.use("/data/user", userRoutes);
 app.use("/data/company", companyRoutes);
 app.use("/data/admin", adminRoutes);
-app.use("/data/chat", chatRoutes)
-app.use("/data/subscribe",subscriptionRoutes)
+app.use("/data/chat", chatRoutes);
+app.use("/data/subscribe", subscriptionRoutes);
 
 app.use(errorHandler);
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-})
+});
