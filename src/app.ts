@@ -22,13 +22,24 @@ const PORT = process.env.PORT || 3000;
 
 database_connection();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://next-way-frontend.vercel.app",
+  "https://next-way-frontend-fvstzp8b0-jyothis-tencys-projects.vercel.app",
+  /\.vercel\.app$/,
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://next-way-frontend.vercel.app",
-      "https://next-way-frontend-fvstzp8b0-jyothis-tencys-projects.vercel.app",
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.some((allowedOrigin) => origin.match(allowedOrigin))) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
