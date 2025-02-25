@@ -23,8 +23,7 @@ const PORT = process.env.PORT || 3000;
 database_connection();
 
 const allowedOrigins = [
-  "http://localhost:5173", // Development
-  "https://next-way-frontend.vercel.app", // Production
+  "https://next-way-frontend.vercel.app",
 ];
 
 app.use(
