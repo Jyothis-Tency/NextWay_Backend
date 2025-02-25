@@ -24,7 +24,11 @@ database_connection();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://next-way-frontend.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "https://next-way-frontend.vercel.app",
+      "https://next-way-frontend-fvstzp8b0-jyothis-tencys-projects.vercel.app",
+    ],
     credentials: true,
   })
 );
