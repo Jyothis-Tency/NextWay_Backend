@@ -23,9 +23,8 @@ const PORT = process.env.PORT || 3000;
 database_connection();
 
 const allowedOrigins = [
-  "https://next-way-frontend.vercel.app",
-  "https://nextway.jyothis.online",
-  "http://localhost:5173",
+  process.env.CLIENT_URL as string,
+  process.env.CLIENT_LOCAL_URL as string,
 ];
 
 app.use(

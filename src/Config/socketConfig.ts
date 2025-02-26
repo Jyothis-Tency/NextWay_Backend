@@ -59,7 +59,7 @@ interface ConnectedClient {
 export const initializeSocket = (server: http.Server) => {
   io = new Server(server, {
     cors: {
-      origin: process.env.SOCKET_CLIENT_URL as string,
+      origin: process.env.CLIENT_URL as string,
       methods: ["GET", "POST"],
       credentials: true,
     },
