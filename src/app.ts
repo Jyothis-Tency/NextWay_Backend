@@ -24,6 +24,7 @@ database_connection();
 
 const allowedOrigins = [
   "https://next-way-frontend.vercel.app",
+  "https://nextway.jyothis.online",
   "http://localhost:5173",
 ];
 
