@@ -68,6 +68,7 @@ export const initializeSocket = (server: http.Server) => {
   });
 
   io.on("connection", (socket) => {
+    
     const clientType = socket.handshake.query.clientType as "user" | "company";
     const clientId = socket.handshake.query.clientId as string;
 
