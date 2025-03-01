@@ -128,7 +128,19 @@ class SubscriptionRepository implements ISubscriptionRepository {
 
   findAllSubscriptions = async (): Promise<ISubscriptionDetails[]> => {
     try {
-      return await this.subscriptionDetails.find();
+      return await this.subscriptionDetails.aggregate([
+        {
+          $lookup: {
+            from: "users", // Collection name in MongoDB (case-sensitive)
+            localField: "user_id",
+            foreignField: "user_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: "$userDetails", // Flatten the user details if necessary
+        },
+      ]);
     } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(

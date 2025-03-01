@@ -490,6 +490,38 @@ class UserServices implements IUserServices {
     try {
       console.log("newJobApplication");
       console.log("resumeFile in newJobApplication", resumeFile);
+      const user = await this.userRepository.getUserById(
+        applicationData.user_id
+      );
+
+      const requiredFields = [
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "location",
+        "bio",
+        "skills",
+        "preferredLocation",
+        "education",
+      ];
+
+      if (!user) {
+        throw new CustomError("User not found", HttpStatusCode.NOT_FOUND);
+      }
+      const missingFields = requiredFields.filter(
+        (field) =>
+          !(user as IUser)[field as keyof IUser] ||
+          (user as any)[field as keyof IUser].length === 0
+      );
+      if (missingFields.length > 0) {
+        throw new CustomError(
+          `Please complete your profile before applying to jobs. Missing fields: ${missingFields.join(
+            ", "
+          )}`,
+          HttpStatusCode.BAD_REQUEST
+        );
+      }
       if (!resumeFile) {
         throw new CustomError("resumeFile not found", HttpStatusCode.NOT_FOUND);
       }
@@ -501,14 +533,11 @@ class UserServices implements IUserServices {
         );
       }
 
-      applicationData.resume = resumeUrl;
+      applicationData.resume = resumeUr  l;
       const result = await this.userRepository.postJobApplication(
         applicationData
       );
 
-      const user = await this.userRepository.getUserById(
-        applicationData.user_id
-      );
       if (!result) {
         throw new CustomError(
           "Failed to save job application",

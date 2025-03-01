@@ -155,6 +155,7 @@ class SubscriptionServices implements ISubscriptionServices {
   getAllSubscriptions = async (): Promise<ISubscriptionDetails[]> => {
     try {
       console.log("getAllSubscriptions subscriptionService");
+
       return await this.subscriptionRepository.findAllSubscriptions();
     } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
@@ -338,7 +339,7 @@ class SubscriptionServices implements ISubscriptionServices {
     // Update subscription status
     await this.subscriptionRepository.updateSubscriptionStatus(
       { paymentId: payment.entity.id },
-      { status: "failed", isCurrent: false }
+      { status: "payment failed", isCurrent: false }
     );
   };
 
