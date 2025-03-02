@@ -9,7 +9,7 @@ const otpSender = async (email: string): Promise<boolean> => {
       1000 + Math.random() * 9000
     ).toString();
 
-    await redisClient.setEx(`${email}:otp`, 60, generated_OTP);
+    await redisClient.setEx(`${email}:otp`, 300, generated_OTP);
     const isMailSend = await sendOTPasMail(email, generated_OTP);
     if (!isMailSend) {
       throw new Error("email not send");

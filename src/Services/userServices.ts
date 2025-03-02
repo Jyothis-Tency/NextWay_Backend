@@ -533,11 +533,12 @@ class UserServices implements IUserServices {
         );
       }
 
-      applicationData.resume = resumeUr  l;
+      applicationData.resume = resumeUrl;
       const result = await this.userRepository.postJobApplication(
         applicationData
       );
 
+      
       if (!result) {
         throw new CustomError(
           "Failed to save job application",

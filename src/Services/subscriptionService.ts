@@ -571,6 +571,8 @@ class SubscriptionServices implements ISubscriptionServices {
 
   cancelExpiredSubscriptions = async () => {
     try {
+      console.log("cancelExpiredSubscriptions subscriptionService");
+      
       const today = dayjs().startOf("day").toDate();
       const expiredSubscriptions =
         await this.subscriptionRepository.getExpiredSubscriptions(today);

@@ -33,20 +33,18 @@ const subscriptionServices = new SubscriptionServices(
   getSocketInstance()
 );
 
-cron.schedule("0 0 * * *", async () => {
-  try {
+const cronJobs = () => {
+  cron.schedule("0 0 * * *", async () => {
     console.log("Running subscription cancellation job...");
-
     await subscriptionServices.cancelExpiredSubscriptions();
-
     console.log("Subscription cancellation job completed.");
-  } catch (error: unknown) {
-    if (error instanceof CustomError) throw error;
-    throw new CustomError(
-      `Error in subscription cancelExpiredSubscriptions: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`,
-      HttpStatusCode.INTERNAL_SERVER_ERROR
-    );
-  }
-});
+  });
+
+  cron.schedule("0 0 * * *", async () => {
+    console.log("test");
+  });
+
+  console.log("Cron jobs have been scheduled");
+};
+
+export default cronJobs;

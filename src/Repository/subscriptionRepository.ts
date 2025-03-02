@@ -128,7 +128,7 @@ class SubscriptionRepository implements ISubscriptionRepository {
 
   findAllSubscriptions = async (): Promise<ISubscriptionDetails[]> => {
     try {
-      return await this.subscriptionDetails.aggregate([
+      const result = await this.subscriptionDetails.aggregate([
         {
           $lookup: {
             from: "users", // Collection name in MongoDB (case-sensitive)
@@ -141,6 +141,9 @@ class SubscriptionRepository implements ISubscriptionRepository {
           $unwind: "$userDetails", // Flatten the user details if necessary
         },
       ]);
+      console.log(result);
+
+      return result;
     } catch (error: unknown) {
       if (error instanceof CustomError) throw error;
       throw new CustomError(

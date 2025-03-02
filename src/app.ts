@@ -15,6 +15,7 @@ import adminRoutes from "./Routes/AdminRoutes";
 import chatRoutes from "./Routes/chatRoutes";
 import errorHandler from "./Middleware/errorHandler";
 import subscriptionRoutes from "./Routes/subscriptionRoutes";
+import cronJobs from "./Utils/crons";
 
 dotenv.config();
 
@@ -50,6 +51,8 @@ app.use("/data/company", companyRoutes);
 app.use("/data/admin", adminRoutes);
 app.use("/data/chat", chatRoutes);
 app.use("/data/subscribe", subscriptionRoutes);
+
+cronJobs();
 
 app.use(errorHandler);
 
