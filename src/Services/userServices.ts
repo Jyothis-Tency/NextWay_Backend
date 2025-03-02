@@ -350,7 +350,7 @@ class UserServices implements IUserServices {
     receivedOTP: string
   ): Promise<Boolean> => {
     try {
-      const getOTP = await redisClient.get(email);
+      const getOTP = await redisClient.get(`${email}:otp`);
       if (!getOTP) {
         throw new CustomError(
           "OTP expired or doesn't exist",
